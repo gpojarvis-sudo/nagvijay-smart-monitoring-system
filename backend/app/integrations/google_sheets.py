@@ -1,0 +1,168 @@
+"""
+Google Sheets Integration - Two-way sync
+For bulk target management and achievement import
+"""
+from __future__ import annotations
+
+from typing import List, Dict, Any, Optional
+import json
+
+import structlog
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+from app.core.config import get_settings
+
+logger = structlog.get_logger(__name__)
+settings = get_settings()
+
+
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
+
+
+class GoogleSheetsIntegration:
+    """Google Sheets sync client"""
+    
+    def __init__(self):
+        self.service = None
+        self.credentials = None
+        
+        if settings.GOOGLE_SHEETS_CREDENTIALS_JSON:
+            try:
+                creds_info = json.loads(settings.GOOGLE_SHEETS_CREDENTIALS_JSON)
+                self.credentials = service_account.Credentials.from_service_account_info(
+                    creds_info, scopes=SCOPES
+                )
+                self.service = build("sheets", "v4", credentials=self.credentials)
+                logger.info("sheets_client_initialized")
+            except Exception as e:
+                logger.error("sheets_init_failed", error=str(e))
+        else:
+            logger.warning("sheets_credentials_not_configured")
+    
+    def is_configured(self) -> bool:
+        return self.service is not None
+    
+    async def read_sheet(self, spreadsheet_id: str, range_name: str = "Sheet1!A1:Z1000") -> List[List[str]]:
+        """Read sheet data"""
+        
+        if not self.is_configured():
+            raise ValueError("Google Sheets not configured - set GOOGLE_SHEETS_CREDENTIALS_JSON")
+        
+        try:
+            result = self.service.spreadsheets().values().get(
+                spreadsheetId=spreadsheet_id,
+                range=range_name,
+            ).execute()
+            
+            values = result.get("values", [])
+            logger.info("sheet_read", spreadsheet_id=spreadsheet_id, rows=len(values))
+            return values
+        
+        except Exception as e:
+            logger.error("sheet_read_failed", error=str(e), spreadsheet_id=spreadsheet_id)
+            raise
+    
+    async def write_sheet(self, spreadsheet_id: str, range_name: str, values: List[List[Any]]) -> Dict:
+        """Write data to sheet"""
+        
+        if not self.is_configured():
+            raise ValueError("Google Sheets not configured")
+        
+        try:
+            body = {"values": values}
+            result = self.service.spreadsheets().values().update(
+                spreadsheetId=spreadsheet_id,
+                range=range_name,
+                valueInputOption="USER_ENTERED",
+                body=body,
+            ).execute()
+            
+            logger.info("sheet_written", spreadsheet_id=spreadsheet_id, updated_cells=result.get("updatedCells"))
+            return result
+        
+        except Exception as e:
+            logger.error("sheet_write_failed", error=str(e))
+            raise
+    
+    async def parse_office_import_sheet(self, spreadsheet_id: str) -> List[Dict[str, Any]]:
+        """Parse office master import sheet"""
+        
+        rows = await self.read_sheet(spreadsheet_id, "Offices!A1:Z1000")
+        if not rows or len(rows) < 2:
+            return []
+        
+        headers = [h.strip().lower().replace(" ", "_") for h in rows[0]]
+        offices = []
+        
+        for row in rows[1:]:
+            # Pad row to headers length
+            row_padded = row + [""] * (len(headers) - len(row))
+            office = dict(zip(headers, row_padded))
+            
+            # Validate required
+            if not office.get("office_code") or not office.get("office_name"):
+                continue
+            
+            offices.append(office)
+        
+        return offices
+    
+    async def parse_achievement_sheet(self, spreadsheet_id: str) -> List[Dict[str, Any]]:
+        """Parse achievement sheet"""
+        
+        rows = await self.read_sheet(spreadsheet_id, "Achievements!A1:Z1000")
+        if not rows or len(rows) < 2:
+            return []
+        
+        headers = [h.strip().lower().replace(" ", "_") for h in rows[0]]
+        achievements = []
+        
+        for idx, row in enumerate(rows[1:], start=2):
+            row_padded = row + [""] * (len(headers) - len(row))
+            ach = dict(zip(headers, row_padded))
+            ach["_row_number"] = idx
+            
+            if not ach.get("office_code") or not ach.get("scheme_code"):
+                continue
+            
+            achievements.append(ach)
+        
+        return achievements
+    
+    async def export_dashboard_to_sheet(self, spreadsheet_id: str, dashboard_data: Dict[str, Any]) -> Dict:
+        """Export dashboard stats to sheet for sharing"""
+        
+        # Prepare data
+        kpis = dashboard_data.get("kpis", {})
+        
+        values = [
+            ["NagVijay Smart Monitoring System - Dashboard Export", ""],
+            ["Generated At", dashboard_data.get("generated_at", "")],
+            ["", ""],
+            ["KPI", "Value"],
+            ["Total Offices", kpis.get("total_offices", 0)],
+            ["Total Employees", kpis.get("total_employees", 0)],
+            ["Total Targets", kpis.get("total_targets", 0)],
+            ["Total Achieved", kpis.get("total_achieved", 0)],
+            ["Achievement %", f"{kpis.get('overall_achievement_percentage', 0)}%"],
+            ["Active Schemes", kpis.get("active_schemes", 0)],
+            ["", ""],
+            ["Top Performers", ""],
+        ]
+        
+        for performer in dashboard_data.get("top_performers", [])[:5]:
+            values.append([performer.get("office_name", ""), f"{performer.get('percentage', 0)}%"])
+        
+        return await self.write_sheet(spreadsheet_id, "Dashboard!A1:B50", values)
+
+
+# Singleton
+_sheets_client: Optional[GoogleSheetsIntegration] = None
+
+
+def get_sheets_client() -> GoogleSheetsIntegration:
+    global _sheets_client
+    if _sheets_client is None:
+        _sheets_client = GoogleSheetsIntegration()
+    return _sheets_client
