@@ -1,0 +1,6 @@
+# Root requirements - for Docker multi-stage or Railway backend detection
+# Backend requirements are in backend/requirements.txt
+
+fastapi==0.110.3
+uvicorn[standard]==0.29.0
+python-dotenv==1.0.1
