@@ -31,7 +31,6 @@ def setup_logging() -> None:
     
     if settings.APP_ENV == "production":
         # JSON for production (better for log aggregators)
-        shared_processors.append(structlog.processors.JSONRenderer())
         formatter = structlog.stdlib.ProcessorFormatter(
             processors=[
                 structlog.stdlib.ProcessorFormatter.remove_processors_meta,
