@@ -143,7 +143,7 @@ def create_application() -> FastAPI:
     
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-    print("========== REGISTERED ROUTES ==========")
+    print("========== REGISTERED ROUTES =========="); print("ROUTE COUNT:", len(app.routes))
     for route in app.routes:
         if hasattr(route, "methods"):
             print(",".join(route.methods), route.path)
