@@ -146,7 +146,11 @@ def create_application() -> FastAPI:
     print("========== REGISTERED ROUTES ==========", flush=True); print("ROUTE COUNT:", len(app.routes), flush=True)
     for route in app.routes:
         if hasattr(route, "methods"):
-            print("ROUTE:", ",".join(route.methods), route.path, flush=True)
+            logger.info(
+                "registered_route",
+                path=route.path,
+                methods=",".join(sorted(route.methods)),
+            )
     print("=======================================", flush=True)
 
     
