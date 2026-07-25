@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/services/authStore'
+import api from '@/services/api'
 
 declare global {
   interface Window {
@@ -11,8 +12,27 @@ declare global {
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const { login } = useAuthStore()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const { login, loginWithPassword } = useAuthStore()
+import api from '@/services/api'
   const navigate = useNavigate()
+
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      await loginWithPassword(email, password)
+      navigate('/')
+    } catch (err: any) {
+      setError(err?.response?.data?.message || err?.message || 'Login failed')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleGoogleLogin = async () => {
     setError(null)
@@ -44,7 +64,9 @@ export default function LoginPage() {
 
       // Production Google OAuth flow
       // This is simplified - in real app, use @react-oauth/google or GIS
-      window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/api/v1/auth/google/url`
+      const res = await api.get('/auth/google/url')
+      window.location.href = res.data.data.auth_url
+      return
       
     } catch (err: any) {
       setError(err.message || 'Login failed')
@@ -99,6 +121,34 @@ export default function LoginPage() {
       )}
 
       <div className="space-y-4">
+        <form onSubmit={handleEmailLogin} className="space-y-3">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e)=>setEmail(e.target.value)}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3"
+            required
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
+            className="w-full rounded-xl border border-gray-300 px-4 py-3"
+            required
+          />
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-red-600 px-4 py-3 text-white font-medium"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+        </form>
+
         <button
           onClick={handleGoogleLogin}
           disabled={loading}
