@@ -141,14 +141,13 @@ def create_application() -> FastAPI:
     
     # Include API router
     
-app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+    app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-import logging
-print("========== REGISTERED ROUTES ==========")
-for route in app.routes:
-    if hasattr(route, "methods"):
-        print(",".join(route.methods), route.path)
-print("=======================================")
+    print("========== REGISTERED ROUTES ==========")
+    for route in app.routes:
+        if hasattr(route, "methods"):
+            print(",".join(route.methods), route.path)
+    print("=======================================")
 
     
     # Root endpoint
