@@ -9,6 +9,7 @@ from typing import AsyncGenerator
 
 import structlog
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import text
 
@@ -20,12 +21,10 @@ settings = get_settings()
 # Async Engine with production pooling
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    pool_size=10,
-    max_overflow=20,
-    pool_timeout=30,
-    pool_recycle=3600,
-    pool_pre_ping=True,
+    poolclass=NullPool,
+    isolation_level="AUTOCOMMIT",
+   connect_args={"ssl": "require", "statement_cache_size": 0},
+ echo=settings.DEBUG,
 )
 
 AsyncSessionLocal = async_sessionmaker(
