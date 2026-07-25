@@ -144,11 +144,11 @@ def create_application() -> FastAPI:
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 import logging
-logging.warning("========== REGISTERED ROUTES ==========")
+print("========== REGISTERED ROUTES ==========")
 for route in app.routes:
     if hasattr(route, "methods"):
-        logging.warning("%s %s", ",".join(route.methods), route.path)
-logging.warning("=======================================")
+        print(",".join(route.methods), route.path)
+print("=======================================")
 
     
     # Root endpoint
