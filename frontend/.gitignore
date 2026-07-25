@@ -1,0 +1,7 @@
+backend/.env.bak
+*.bak
+*.backup
+*.bak2
+*.step1.bak
+.env
+.env.*
