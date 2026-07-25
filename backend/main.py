@@ -140,7 +140,16 @@ def create_application() -> FastAPI:
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     
     # Include API router
-    app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+    
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+import logging
+logging.warning("========== REGISTERED ROUTES ==========")
+for route in app.routes:
+    if hasattr(route, "methods"):
+        logging.warning("%s %s", ",".join(route.methods), route.path)
+logging.warning("=======================================")
+
     
     # Root endpoint
     @app.get("/", tags=["Root"])
