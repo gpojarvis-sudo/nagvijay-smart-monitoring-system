@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     """Application settings - validated via Pydantic v2"""
     
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env","/etc/secrets/.env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",
@@ -67,6 +67,19 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = Field(default="gemini-1.5-flash")
     GEMINI_TEMPERATURE: float = Field(default=0.2)
     GEMINI_MAX_TOKENS: int = Field(default=2048)
+
+    # AI Provider
+    AI_PROVIDER: str = Field(default="cloudflare")
+
+    # Cloudflare Workers AI
+    CLOUDFLARE_ACCOUNT_ID: str = Field(default="")
+    CLOUDFLARE_API_TOKEN: str = Field(default="")
+    CLOUDFLARE_MODEL: str = Field(default="@cf/openai/gpt-oss-120b")
+    AI_FALLBACK_MODEL: str = Field(default="@cf/deepseek-ai/deepseek-r1-distill-qwen-32b")
+
+    # Generic AI Settings
+    AI_TEMPERATURE: float = Field(default=0.2)
+    AI_MAX_TOKENS: int = Field(default=2048)
     
     # Automation / n8n
     N8N_WEBHOOK_URL: str = Field(default="")
