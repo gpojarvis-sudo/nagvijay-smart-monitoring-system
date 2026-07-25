@@ -143,11 +143,11 @@ def create_application() -> FastAPI:
     
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-    print("========== REGISTERED ROUTES =========="); print("ROUTE COUNT:", len(app.routes))
+    print("========== REGISTERED ROUTES ==========", flush=True); print("ROUTE COUNT:", len(app.routes), flush=True)
     for route in app.routes:
         if hasattr(route, "methods"):
-            print("ROUTE:", ",".join(route.methods), route.path)
-    print("=======================================")
+            print("ROUTE:", ",".join(route.methods), route.path, flush=True)
+    print("=======================================", flush=True)
 
     
     # Root endpoint
