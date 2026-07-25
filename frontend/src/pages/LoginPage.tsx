@@ -15,7 +15,6 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { login, loginWithPassword } = useAuthStore()
-import api from '@/services/api'
   const navigate = useNavigate()
 
 
