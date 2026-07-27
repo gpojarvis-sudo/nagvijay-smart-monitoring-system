@@ -229,3 +229,21 @@ async def all_integrations_status(
             "n8n": n8n_health,
         }
     }
+
+@router.post("/forms/webhook", summary="Google Forms Webhook Receiver")
+async def forms_webhook(
+    request: Request,
+    x_webhook_secret: Optional[str] = Header(default=None, alias="X-Webhook-Secret"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Temporary stub - will be fully implemented later.
+    """
+    payload = await request.json()
+    # Placeholder: just return success for now
+    return {
+        "success": True,
+        "message": "Webhook received (stub)",
+        "payload": payload
+    }
+
