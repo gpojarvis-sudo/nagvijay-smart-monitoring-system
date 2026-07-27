@@ -45,7 +45,8 @@ def init_scheduler() -> AsyncIOScheduler:
 def _register_jobs(sched: AsyncIOScheduler):
     """Register all scheduled jobs"""
     
-    from app.tasks.sync_tasks import (
+    from app.tasks.daily_summary_task import generate_daily_summary
+from app.tasks.sync_tasks import (
         daily_target_rollover,
         sync_google_sheets,
         cleanup_audit_logs,
@@ -87,6 +88,15 @@ def _register_jobs(sched: AsyncIOScheduler):
         IntervalTrigger(hours=1),
         id="pending_verifications",
         name="Check Pending Verifications",
+        replace_existing=True,
+    )
+    
+    # Daily at 8 PM IST - Generate daily summary
+    sched.add_job(
+        generate_daily_summary,
+        CronTrigger(hour=20, minute=0),
+        id="daily_summary",
+        name="Generate Daily Summary",
         replace_existing=True,
     )
     
