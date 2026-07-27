@@ -36,13 +36,14 @@ async def forms_webhook(
     """
     Receive webhook from Google Forms Apps Script.
     Converts form response to DailyOfficeReport.
+    Logs errors to sync_errors table.
     """
     
     payload = await request.json()
     
-    # Validate secret
-    is_valid = await GoogleFormsIntegration.validate_webhook_secret(x_webhook_secret)
-    if not is_valid:
+    # Validate secret using environment variable (no external calls)
+    expected_secret = settings.GOOGLE_FORMS_WEBHOOK_SECRET
+    if not expected_secret or x_webhook_secret != expected_secret:
         raise UnauthorizedException("Invalid webhook secret")
     
     try:
@@ -51,7 +52,7 @@ async def forms_webhook(
         # Parse form payload
         office_code = payload.get("office_code")
         report_date = payload.get("achievement_date") or payload.get("report_date") or datetime.now().strftime("%d.%m.%Y")
-        amount = float(payload.get("amount") or 0)
+        office_name = payload.get("office_name") or payload.get("office_name_original")
         
         # Find office
         from sqlalchemy import select
@@ -59,26 +60,31 @@ async def forms_webhook(
         office_result = await db.execute(select(Office).where(Office.office_code == office_code))
         office = office_result.scalars().first()
         if not office:
-            raise BadRequestException(f"Office code {office_code} not found")
+            # Try finding by office_name
+            if office_name:
+                office_result = await db.execute(select(Office).where(Office.office_name == office_name))
+                office = office_result.scalars().first()
+            if not office:
+                raise BadRequestException(f"Office not found: code={office_code}, name={office_name}")
         
         # Prepare data for DailyOfficeReport
         report_data = {
             "office_code": office.office_code,
             "office_name": office.office_name,
             "report_date": report_date,
-            "sb_opened": payload.get("sb_opened") or 0,
-            "sb_closed": payload.get("sb_closed") or 0,
-            "net_accounts": payload.get("net_accounts") or 0,
-            "pli_policies": payload.get("pli_policies") or 0,
-            "sum_assured": payload.get("sum_assured") or 0.0,
-            "premium": payload.get("premium") or 0.0,
-            "speed_post_document": payload.get("speed_post_document") or 0,
-            "speed_post_parcel": payload.get("speed_post_parcel") or 0,
-            "business_post": payload.get("business_post") or 0,
-            "logistics": payload.get("logistics") or 0,
-            "international_letter": payload.get("international_letter") or 0,
-            "aadhaar_transactions": payload.get("aadhaar_transactions") or 0,
-            "aadhaar_amount": payload.get("aadhaar_amount") or 0.0,
+            "sb_opened": int(payload.get("sb_opened") or 0),
+            "sb_closed": int(payload.get("sb_closed") or 0),
+            "net_accounts": int(payload.get("net_accounts") or 0),
+            "pli_policies": int(payload.get("pli_policies") or 0),
+            "sum_assured": float(payload.get("sum_assured") or 0.0),
+            "premium": float(payload.get("premium") or 0.0),
+            "speed_post_document": int(payload.get("speed_post_document") or 0),
+            "speed_post_parcel": int(payload.get("speed_post_parcel") or 0),
+            "business_post": int(payload.get("business_post") or 0),
+            "logistics": int(payload.get("logistics") or 0),
+            "international_letter": int(payload.get("international_letter") or 0),
+            "aadhaar_transactions": int(payload.get("aadhaar_transactions") or 0),
+            "aadhaar_amount": float(payload.get("aadhaar_amount") or 0.0),
         }
         
         # Upsert into DailyOfficeReport
@@ -90,16 +96,29 @@ async def forms_webhook(
             "message": "Daily office report updated from Google Form",
             "data": {
                 "report_id": report.id,
-                "office_code": office_code,
+                "office_code": office.office_code,
                 "report_date": str(report.report_date),
             }
         }
     
     except Exception as e:
+        # Log error to sync_errors table
+        from app.models.sync_error import SyncError
+        from app.constants.status import SyncErrorType
+        from datetime import datetime as dt
+        error_log = SyncError(
+            error_date=dt.utcnow().date(),
+            office_name=payload.get("office_name") or payload.get("office_name_original"),
+            office_code=payload.get("office_code"),
+            error_type=SyncErrorType.WEBHOOK,
+            error_message=str(e)[:500],
+        )
+        db.add(error_log)
+        await db.commit()
         return {
             "success": False,
             "error": str(e),
-            "message": "Failed to process form webhook",
+            "message": "Failed to process form webhook. Error logged.",
         }
 @router.get("/sheets/status", summary="Google Sheets Status")
 async def sheets_status(
