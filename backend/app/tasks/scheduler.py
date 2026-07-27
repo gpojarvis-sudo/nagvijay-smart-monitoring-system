@@ -20,23 +20,22 @@ scheduler: Optional[AsyncIOScheduler] = None
 
 def init_scheduler() -> AsyncIOScheduler:
     global scheduler
-    
+
     if scheduler and scheduler.running:
         logger.warning("scheduler_already_running")
         return scheduler
-    
+
     scheduler = AsyncIOScheduler(
         job_defaults={
             "coalesce": True,
             "max_instances": 1,
-            "misfire_grace_time": 300,  # 5 min grace
+            "misfire_grace_time": 300,
         },
         timezone="Asia/Kolkata",
     )
-    
-    # Register jobs
+
     _register_jobs(scheduler)
-    
+
     scheduler.start()
     logger.info("scheduler_started", jobs=len(scheduler.get_jobs()))
     return scheduler
@@ -44,7 +43,7 @@ def init_scheduler() -> AsyncIOScheduler:
 
 def _register_jobs(sched: AsyncIOScheduler):
     """Register all scheduled jobs"""
-    
+
     from app.tasks.sync_tasks import (
         daily_target_rollover,
         sync_google_sheets,
@@ -53,7 +52,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         check_pending_verifications,
     )
     from app.tasks.daily_summary_task import generate_daily_summary
-    
+
     # Daily at 6 AM IST - Target rollover
     sched.add_job(
         daily_target_rollover,
@@ -62,7 +61,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         name="Daily Target Rollover",
         replace_existing=True,
     )
-    
+
     # Every 2 hours - Google Sheets sync
     if settings.ENABLE_GOOGLE_SHEETS_SYNC:
         sched.add_job(
@@ -72,7 +71,7 @@ def _register_jobs(sched: AsyncIOScheduler):
             name="Google Sheets Sync",
             replace_existing=True,
         )
-    
+
     # Daily at 7 AM IST - Daily reports
     sched.add_job(
         send_daily_reports,
@@ -81,7 +80,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         name="Send Daily Reports",
         replace_existing=True,
     )
-    
+
     # Every hour - Check pending verifications
     sched.add_job(
         check_pending_verifications,
@@ -90,7 +89,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         name="Check Pending Verifications",
         replace_existing=True,
     )
-    
+
     # Daily at 8 PM IST - Generate daily summary
     sched.add_job(
         generate_daily_summary,
@@ -99,7 +98,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         name="Generate Daily Summary",
         replace_existing=True,
     )
-    
+
     # Weekly Sunday 2 AM - Cleanup old audit logs (keep 90 days)
     sched.add_job(
         cleanup_audit_logs,
@@ -108,7 +107,7 @@ def _register_jobs(sched: AsyncIOScheduler):
         name="Cleanup Audit Logs",
         replace_existing=True,
     )
-    
+
     logger.info("scheduler_jobs_registered", jobs=[j.id for j in sched.get_jobs()])
 
 
