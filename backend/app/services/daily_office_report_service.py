@@ -138,3 +138,37 @@ class DailyOfficeReportService:
             "total_revenue": float(row[7] or 0.0),
             "report_date": report_date,
         }
+
+    async def get_non_reporting_offices(self, report_date: date, division: str = "Nagpur City") -> List[dict]:
+        """Get list of offices that haven't submitted a report for a given date"""
+        from sqlalchemy import select, and_
+        from app.models.office import Office
+        
+        # Get all active offices in division
+        stmt_offices = select(Office).where(
+            and_(
+                Office.division == division,
+                Office.status == 'ACTIVE'
+            )
+        )
+        offices_result = await self.db.execute(stmt_offices)
+        all_offices = offices_result.scalars().all()
+        
+        # Get offices that have submitted report for that date
+        stmt_reported = select(DailyOfficeReport.office_id).where(
+            DailyOfficeReport.report_date == report_date
+        )
+        reported_result = await self.db.execute(stmt_reported)
+        reported_ids = {row[0] for row in reported_result.all()}
+        
+        # Find non-reporting offices
+        non_reporting = []
+        for office in all_offices:
+            if office.id not in reported_ids:
+                non_reporting.append({
+                    "office_id": office.id,
+                    "office_code": office.office_code,
+                    "office_name": office.office_name,
+                    "office_type": office.office_type.value if hasattr(office.office_type, 'value') else str(office.office_type),
+                })
+        return non_reporting
