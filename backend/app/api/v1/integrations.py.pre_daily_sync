@@ -195,22 +195,6 @@ async def trigger_workflow(
     }
 
 
-@router.post("/sheets/sync-daily-office-report", summary="Sync Daily Office Report")
-async def sync_daily_office_reports_endpoint(
-    current_user: User = Depends(require_permission(Permission.INTEGRATION_MANAGE)),
-    db: AsyncSession = Depends(get_db),
-):
-    from app.services.google_sheet_sync_service import GoogleSheetSyncService
-
-    service = GoogleSheetSyncService(db)
-    result = await service.sync_daily_office_reports()
-
-    return {
-        "success": True,
-        "data": result,
-    }
-
-
 @router.get("/status", summary="All Integrations Status")
 async def all_integrations_status(
     current_user: User = Depends(require_permission(Permission.INTEGRATION_READ)),

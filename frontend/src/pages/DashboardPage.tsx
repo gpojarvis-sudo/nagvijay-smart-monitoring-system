@@ -1,14 +1,29 @@
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
-import { Building2, Users, Target, TrendingUp, AlertTriangle, CheckCircle, BarChart3, Activity } from 'lucide-react'
+import { Building2, Users, Target, TrendingUp, AlertTriangle, CheckCircle, BarChart3, Activity, Calendar, DollarSign, FileText } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts'
+import { dashboardService } from '@/services/dashboardService'
 
 export default function DashboardPage() {
-  const { data: dashboardData, isLoading } = useQuery({
+  const today = new Date().toISOString().split('T')[0]
+
+  // Existing analytics data
+  const { data: dashboardData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['dashboard', 'Nagpur City'],
     queryFn: async () => {
       const res = await api.get('/analytics/dashboard?division=Nagpur City')
       return res.data.data
+    },
+    retry: 1,
+    refetchInterval: 60000,
+  })
+
+  // New daily report summary
+  const { data: dailySummary, isLoading: dailyLoading } = useQuery({
+    queryKey: ['dailySummary', today],
+    queryFn: async () => {
+      const res = await api.get('/daily-reports/summary', { params: { report_date: today } })
+      return res.data
     },
     retry: 1,
     refetchInterval: 60000,
@@ -21,6 +36,8 @@ export default function DashboardPage() {
       return res.data
     }
   })
+
+  const isLoading = analyticsLoading || dailyLoading
 
   if (isLoading) {
     return (
@@ -43,11 +60,25 @@ export default function DashboardPage() {
     pending_verifications: 0,
   }
 
+  // Daily summary data (from Google Sheets sync)
+  const daily = dailySummary || {
+    total_offices: 0,
+    total_sb_opened: 0,
+    total_sb_closed: 0,
+    total_net_accounts: 0,
+    total_pli_policies: 0,
+    total_sum_assured: 0,
+    total_premium: 0,
+    total_revenue: 0,
+    report_date: today,
+  }
+
+  // Combined KPI cards: first two are achievement-based, next two are daily operational
   const stats = [
-    { label: 'Total Offices', value: kpis.total_offices || 150, icon: Building2, color: 'bg-blue-500', change: '+2 this month' },
+    { label: 'Total Offices', value: kpis.total_offices || 150, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
     { label: 'Total Employees', value: kpis.total_employees || 420, icon: Users, color: 'bg-green-500', change: '+12 new' },
-    { label: 'Total Targets', value: kpis.total_targets || 48, icon: Target, color: 'bg-purple-500', change: 'FY 2024-25' },
-    { label: 'Achievement %', value: `${kpis.overall_achievement_percentage || 67.5}%`, icon: TrendingUp, color: 'bg-orange-500', change: '+5.2% vs last month' },
+    { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
+    { label: 'Daily Revenue (₹)', value: `₹${(daily.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'bg-orange-500', change: `Today's total` },
   ]
 
   const schemeData = dashboardData?.scheme_wise || [
@@ -75,7 +106,7 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring • Last updated: now</p>
+          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring • {daily.report_date ? `Daily Report: ${daily.report_date}` : 'No daily data yet'}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className={`px-3 py-1 rounded-full text-xs font-medium border ${healthData?.status === 'healthy' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
@@ -140,6 +171,48 @@ export default function DashboardPage() {
                 <Bar dataKey="value" fill="#DC2626" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* Daily Operational Stats (New) */}
+      <div className="bg-white rounded-xl border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Calendar size={18} className="text-indigo-600" /> Daily Office Report Summary</h3>
+          <span className="text-xs text-gray-500">{daily.report_date || 'No data'}</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <p className="text-xs text-blue-600 font-medium">SB Opened</p>
+            <p className="text-2xl font-bold text-blue-800">{daily.total_sb_opened || 0}</p>
+          </div>
+          <div className="p-4 bg-red-50 rounded-lg">
+            <p className="text-xs text-red-600 font-medium">SB Closed</p>
+            <p className="text-2xl font-bold text-red-800">{daily.total_sb_closed || 0}</p>
+          </div>
+          <div className="p-4 bg-green-50 rounded-lg">
+            <p className="text-xs text-green-600 font-medium">Net Accounts</p>
+            <p className="text-2xl font-bold text-green-800">{daily.total_net_accounts || 0}</p>
+          </div>
+          <div className="p-4 bg-purple-50 rounded-lg">
+            <p className="text-xs text-purple-600 font-medium">PLI Policies</p>
+            <p className="text-2xl font-bold text-purple-800">{daily.total_pli_policies || 0}</p>
+          </div>
+          <div className="p-4 bg-amber-50 rounded-lg">
+            <p className="text-xs text-amber-600 font-medium">Total Premium (₹)</p>
+            <p className="text-2xl font-bold text-amber-800">₹{(daily.total_premium || 0).toLocaleString()}</p>
+          </div>
+          <div className="p-4 bg-indigo-50 rounded-lg">
+            <p className="text-xs text-indigo-600 font-medium">Sum Assured (₹)</p>
+            <p className="text-2xl font-bold text-indigo-800">₹{(daily.total_sum_assured || 0).toLocaleString()}</p>
+          </div>
+          <div className="p-4 bg-teal-50 rounded-lg">
+            <p className="text-xs text-teal-600 font-medium">Aadhaar Transactions</p>
+            <p className="text-2xl font-bold text-teal-800">{daily.aadhaar_transactions || 0}</p>
+          </div>
+          <div className="p-4 bg-rose-50 rounded-lg">
+            <p className="text-xs text-rose-600 font-medium">Total Revenue (₹)</p>
+            <p className="text-2xl font-bold text-rose-800">₹{(daily.total_revenue || 0).toLocaleString()}</p>
           </div>
         </div>
       </div>

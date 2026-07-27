@@ -37,25 +37,62 @@ async def daily_target_rollover():
 
 
 async def sync_google_sheets():
-    """Sync Google Sheets - import/export"""
+    """Sync Google Sheets - import achievements"""
     logger.info("job_started", job="sync_google_sheets")
+
     try:
         if not settings.ENABLE_GOOGLE_SHEETS_SYNC:
             logger.info("job_skipped", job="sync_google_sheets", reason="disabled")
             return
-        
+
+        from app.core.database import AsyncSessionLocal
         from app.integrations.google_sheets import get_sheets_client
-        
+        from app.services.form_import_service import FormImportService
+
         sheets_client = get_sheets_client()
+
         if not sheets_client.is_configured():
             logger.warning("sheets_not_configured_skip")
             return
-        
-        # Placeholder - actual sync would need spreadsheet IDs from settings/DB
-        logger.info("job_completed", job="sync_google_sheets", note="Sheets sync requires spreadsheet IDs in DB")
-    
+
+        rows = await sheets_client.parse_achievement_sheet()
+
+        if not rows:
+            logger.info("job_completed", job="sync_google_sheets", imported=0)
+            return
+
+        processed = 0
+        imported = 0
+        failed = 0
+
+        async with AsyncSessionLocal() as db:
+            for row in rows:
+                processed += 1
+                try:
+                    await FormImportService.process(row, db)
+                    imported += 1
+                except Exception as exc:
+                    failed += 1
+                    logger.warning(
+                        "sheet_row_failed",
+                        row=row.get("_row_number"),
+                        error=str(exc),
+                    )
+
+        logger.info(
+            "job_completed",
+            job="sync_google_sheets",
+            processed=processed,
+            imported=imported,
+            failed=failed,
+        )
+
     except Exception as e:
-        logger.error("job_failed", job="sync_google_sheets", error=str(e))
+        logger.error(
+            "job_failed",
+            job="sync_google_sheets",
+            error=str(e),
+        )
 
 
 async def send_daily_reports():

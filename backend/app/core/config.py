@@ -50,17 +50,13 @@ class Settings(BaseSettings):
     JWT_ISSUER: str = Field(default="nagvijay-nsms")
     BCRYPT_ROUNDS: int = Field(default=12)
     
-    # Google OAuth
-    GOOGLE_CLIENT_ID: str = Field(default="")
-    GOOGLE_CLIENT_SECRET: str = Field(default="")
-    GOOGLE_REDIRECT_URI: str = Field(default="http://localhost:8000/api/v1/auth/google/callback")
-    GOOGLE_OAUTH_SCOPES: str = Field(default="openid email profile")
-    
     # Google APIs
     GOOGLE_SHEETS_API_ENABLED: bool = Field(default=True)
     GOOGLE_FORMS_API_ENABLED: bool = Field(default=True)
     GOOGLE_SHEETS_CREDENTIALS_JSON: str = Field(default="")
     GOOGLE_FORMS_WEBHOOK_SECRET: str = Field(default="")
+    GOOGLE_SHEETS_SPREADSHEET_ID: str = Field(default="")
+    GOOGLE_SHEETS_SHEET_NAME: str = Field(default="Form Responses 1")
     
     # AI / Gemini
     GEMINI_API_KEY: str = Field(default="")
