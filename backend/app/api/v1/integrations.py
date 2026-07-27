@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, Header, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from datetime import datetime
 from app.core.config import get_settings
 from app.core.exceptions import UnauthorizedException, BadRequestException
 from app.dependencies.auth import get_current_active_user
@@ -246,4 +247,78 @@ async def forms_webhook(
         "message": "Webhook received (stub)",
         "payload": payload
     }
+
+@router.post("/forms/webhook", summary="Google Forms Webhook Receiver")
+async def forms_webhook(
+    request: Request,
+    x_webhook_secret: Optional[str] = Header(default=None, alias="X-Webhook-Secret"),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Receive webhook from Google Forms Apps Script.
+    Converts form response to DailyOfficeReport.
+    """
+    
+    payload = await request.json()
+    
+    # Validate secret
+    is_valid = await GoogleFormsIntegration.validate_webhook_secret(x_webhook_secret)
+    if not is_valid:
+        raise UnauthorizedException("Invalid webhook secret")
+    
+    try:
+        from app.services.daily_office_report_service import DailyOfficeReportService
+        
+        # Parse form payload
+        office_code = payload.get("office_code")
+        report_date = payload.get("achievement_date") or payload.get("report_date") or datetime.now().strftime("%d.%m.%Y")
+        
+        # Find office
+        from sqlalchemy import select
+        from app.models.office import Office
+        office_result = await db.execute(select(Office).where(Office.office_code == office_code))
+        office = office_result.scalars().first()
+        if not office:
+            raise BadRequestException(f"Office code {office_code} not found")
+        
+        # Prepare data for DailyOfficeReport
+        report_data = {
+            "office_code": office.office_code,
+            "office_name": office.office_name,
+            "report_date": report_date,
+            "sb_opened": payload.get("sb_opened") or 0,
+            "sb_closed": payload.get("sb_closed") or 0,
+            "net_accounts": payload.get("net_accounts") or 0,
+            "pli_policies": payload.get("pli_policies") or 0,
+            "sum_assured": payload.get("sum_assured") or 0.0,
+            "premium": payload.get("premium") or 0.0,
+            "speed_post_document": payload.get("speed_post_document") or 0,
+            "speed_post_parcel": payload.get("speed_post_parcel") or 0,
+            "business_post": payload.get("business_post") or 0,
+            "logistics": payload.get("logistics") or 0,
+            "international_letter": payload.get("international_letter") or 0,
+            "aadhaar_transactions": payload.get("aadhaar_transactions") or 0,
+            "aadhaar_amount": payload.get("aadhaar_amount") or 0.0,
+        }
+        
+        # Upsert into DailyOfficeReport
+        service = DailyOfficeReportService(db)
+        report = await service.upsert(report_data)
+        
+        return {
+            "success": True,
+            "message": "Daily office report updated from Google Form",
+            "data": {
+                "report_id": report.id,
+                "office_code": office_code,
+                "report_date": str(report.report_date),
+            }
+        }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to process form webhook",
+        }
 
