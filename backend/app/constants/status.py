@@ -113,3 +113,7 @@ class AuditAction(str, Enum):
     EXPORT = "EXPORT"
     IMPORT = "IMPORT"
     ALLOCATE = "ALLOCATE"
+
+class SyncErrorType(str, Enum):
+    SYNC = "SYNC"
+    WEBHOOK = "WEBHOOK"

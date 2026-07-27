@@ -1,4 +1,5 @@
 from .daily_office_report import DailyOfficeReport
+from .sync_error import SyncError
 """Models package"""
 from app.core.database import Base
 
@@ -21,4 +22,5 @@ __all__ = [
     "AuditLog",
     "Notification",
     "DailyOfficeReport",
+    "SyncError",
 ]
