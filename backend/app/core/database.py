@@ -24,7 +24,13 @@ engine = create_async_engine(
     pool_pre_ping=True,
     poolclass=NullPool,
     isolation_level="AUTOCOMMIT",
-    connect_args={"ssl": "require", "statement_cache_size": 0},
+    connect_args={
+        "ssl": "require",
+        "statement_cache_size": 0,
+        "server_settings": {
+            "statement_cache_mode": "none"  # Disable prepared statements for pgbouncer
+        }
+    },
     echo=settings.DEBUG,
 )
 
