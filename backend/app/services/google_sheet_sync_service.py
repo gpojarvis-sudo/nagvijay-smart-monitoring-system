@@ -28,6 +28,20 @@ class GoogleSheetSyncService:
                 synced += 1
             except Exception as exc:
                 failed += 1
+                # Log error to sync_errors table
+                from app.models.sync_error import SyncError
+                from app.constants.status import SyncErrorType
+                from datetime import datetime as dt
+                async with AsyncSessionLocal() as log_db:
+                    error_log = SyncError(
+                        error_date=dt.utcnow().date(),
+                        office_name=report.get("office_name_original") or report.get("office_name"),
+                        office_code=report.get("office_code"),
+                        error_type=SyncErrorType.SYNC,
+                        error_message=str(exc)[:500],
+                    )
+                    log_db.add(error_log)
+                    await log_db.commit()
                 errors.append(
                     {
                         "row": report.get("_row_number"),
