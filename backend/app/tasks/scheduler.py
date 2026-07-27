@@ -117,3 +117,7 @@ def shutdown_scheduler():
         scheduler.shutdown()
         logger.info("scheduler_shutdown")
         scheduler = None
+
+def get_scheduler() -> Optional[AsyncIOScheduler]:
+    """Return the global scheduler instance."""
+    return scheduler
