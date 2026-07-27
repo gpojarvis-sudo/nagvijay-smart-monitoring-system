@@ -19,12 +19,13 @@ logger = structlog.get_logger(__name__)
 settings = get_settings()
 
 # Async Engine with production pooling
-, pool_pre_ping=True,
+engine = create_async_engine(
     settings.DATABASE_URL,
+    pool_pre_ping=True,
     poolclass=NullPool,
     isolation_level="AUTOCOMMIT",
-   connect_args={"ssl": "require", "statement_cache_size": 0},
- echo=settings.DEBUG,
+    connect_args={"ssl": "require", "statement_cache_size": 0},
+    echo=settings.DEBUG,
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -82,6 +83,3 @@ async def health_check_db() -> dict:
     except Exception as e:
         logger.error("db_health_check_failed", error=str(e))
         return {"status": "unhealthy", "error": str(e)}
-
-
-# Supabase client will be initialized separately in integrations
