@@ -45,14 +45,14 @@ def init_scheduler() -> AsyncIOScheduler:
 def _register_jobs(sched: AsyncIOScheduler):
     """Register all scheduled jobs"""
     
-    from app.tasks.daily_summary_task import generate_daily_summary
-from app.tasks.sync_tasks import (
+    from app.tasks.sync_tasks import (
         daily_target_rollover,
         sync_google_sheets,
         cleanup_audit_logs,
         send_daily_reports,
         check_pending_verifications,
     )
+    from app.tasks.daily_summary_task import generate_daily_summary
     
     # Daily at 6 AM IST - Target rollover
     sched.add_job(
@@ -118,7 +118,3 @@ def shutdown_scheduler():
         scheduler.shutdown()
         logger.info("scheduler_shutdown")
         scheduler = None
-
-
-def get_scheduler() -> Optional[AsyncIOScheduler]:
-    return scheduler
