@@ -24,6 +24,7 @@ router = APIRouter()
 settings = get_settings()
 
 
+
 @router.post("/forms/webhook", summary="Google Forms Webhook Receiver")
 async def forms_webhook(
     request: Request,
@@ -32,8 +33,7 @@ async def forms_webhook(
 ):
     """
     Receive webhook from Google Forms Apps Script.
-    No auth required but validates secret if configured.
-    Converts form response to achievement.
+    Converts form response to DailyOfficeReport.
     """
     
     payload = await request.json()
@@ -44,71 +44,62 @@ async def forms_webhook(
         raise UnauthorizedException("Invalid webhook secret")
     
     try:
-        # Parse form
-        parsed = GoogleFormsIntegration.parse_form_response(payload)
+        from app.services.daily_office_report_service import DailyOfficeReportService
         
-        if not parsed.get("office_code") or not parsed.get("scheme_code"):
-            raise BadRequestException("Missing office_code or scheme_code in form response")
+        # Parse form payload
+        office_code = payload.get("office_code")
+        report_date = payload.get("achievement_date") or payload.get("report_date") or datetime.now().strftime("%d.%m.%Y")
+        amount = float(payload.get("amount") or 0)
         
-        # Lookup office and scheme
+        # Find office
         from sqlalchemy import select
         from app.models.office import Office
-        from app.models.target import Scheme, Target, TargetAllocation
-        
-        office_result = await db.execute(select(Office).where(Office.office_code == parsed["office_code"]))
+        office_result = await db.execute(select(Office).where(Office.office_code == office_code))
         office = office_result.scalars().first()
         if not office:
-            raise BadRequestException(f"Office code {parsed['office_code']} not found")
+            raise BadRequestException(f"Office code {office_code} not found")
         
-        scheme_result = await db.execute(select(Scheme).where(Scheme.scheme_code == parsed["scheme_code"]))
-        scheme = scheme_result.scalars().first()
-        if not scheme:
-            raise BadRequestException(f"Scheme code {parsed['scheme_code']} not found")
+        # Prepare data for DailyOfficeReport
+        report_data = {
+            "office_code": office.office_code,
+            "office_name": office.office_name,
+            "report_date": report_date,
+            "sb_opened": payload.get("sb_opened") or 0,
+            "sb_closed": payload.get("sb_closed") or 0,
+            "net_accounts": payload.get("net_accounts") or 0,
+            "pli_policies": payload.get("pli_policies") or 0,
+            "sum_assured": payload.get("sum_assured") or 0.0,
+            "premium": payload.get("premium") or 0.0,
+            "speed_post_document": payload.get("speed_post_document") or 0,
+            "speed_post_parcel": payload.get("speed_post_parcel") or 0,
+            "business_post": payload.get("business_post") or 0,
+            "logistics": payload.get("logistics") or 0,
+            "international_letter": payload.get("international_letter") or 0,
+            "aadhaar_transactions": payload.get("aadhaar_transactions") or 0,
+            "aadhaar_amount": payload.get("aadhaar_amount") or 0.0,
+        }
         
-        # Find allocation - simplified: first allocation for office + scheme + current FY
-        from app.utils.helpers import get_financial_year
-        current_fy = get_financial_year()
-        alloc_result = await db.execute(
-            select(TargetAllocation).where(
-                TargetAllocation.office_id == office.id,
-                TargetAllocation.scheme_id == scheme.id,
-                TargetAllocation.financial_year == current_fy
-            ).limit(1)
-        )
-        allocation = alloc_result.scalars().first()
-        if not allocation:
-            raise BadRequestException(f"No allocation found for office {office.office_code} and scheme {scheme.scheme_code} in FY {current_fy}")
-        
-        # Get target
-        target_result = await db.execute(select(Target).where(Target.id == allocation.target_id))
-        target = target_result.scalars().first()
-        
-        # Map to achievement
-        achievement_data = GoogleFormsIntegration.map_to_achievement(
-            parsed=parsed,
-            office_id=office.id,
-            scheme_id=scheme.id,
-            allocation_id=allocation.id,
-            target_id=target.id if target else allocation.target_id,
-        )
-        
-        # Create achievement via service
-        from app.schemas.target import AchievementCreate
-        from app.services.target_service import TargetService
-        
-        ach_create = AchievementCreate(**achievement_data)
-        target_service = TargetService(db)
-        achievement = await target_service.record_achievement(ach_create)
+        # Upsert into DailyOfficeReport
+        service = DailyOfficeReportService(db)
+        report = await service.upsert(report_data)
         
         return {
             "success": True,
-            "message": "Achievement recorded from Google Form",
+            "message": "Daily office report updated from Google Form",
             "data": {
-                "achievement_id": achievement.id,
-                "office_code": parsed["office_code"],
-                "scheme_code": parsed["scheme_code"],
-                "amount": parsed["amount"],
+                "report_id": report.id,
+                "office_code": office_code,
+                "report_date": str(report.report_date),
             }
+        }
+    
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "message": "Failed to process form webhook",
+        }
+
         }
     
     except Exception as e:
