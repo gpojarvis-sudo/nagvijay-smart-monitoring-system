@@ -1,3 +1,4 @@
+from .daily_office_report import DailyOfficeReport
 """Models package"""
 from app.core.database import Base
 
@@ -19,4 +20,5 @@ __all__ = [
     "Scheme",
     "AuditLog",
     "Notification",
+    "DailyOfficeReport",
 ]

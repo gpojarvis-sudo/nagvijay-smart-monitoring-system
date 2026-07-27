@@ -78,7 +78,7 @@ ROLE_PERMISSIONS: Dict[UserRole, List[Permission]] = {
         Permission.REPORTS_READ, Permission.REPORTS_GENERATE,
         Permission.AI_CHAT,
         Permission.AUDIT_READ,
-        Permission.INTEGRATION_READ, Permission.INTEGRATION_MANAGE,
+        Permission.INTEGRATION_READ, Permission.INTEGRATION_MANAGE, Permission.INTEGRATION_MANAGE,
         Permission.USER_MANAGE,
     ],
     
@@ -90,6 +90,7 @@ ROLE_PERMISSIONS: Dict[UserRole, List[Permission]] = {
         Permission.REPORTS_READ,
         Permission.AI_CHAT,
         Permission.INTEGRATION_READ,
+        Permission.INTEGRATION_MANAGE,
     ],
     
     UserRole.EMPLOYEE: [

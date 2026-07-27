@@ -8,5 +8,10 @@ export const dashboardService = {
   getKpis: async () => {
     const res = await api.get('/analytics/kpis')
     return res.data.data
+  },
+  getDailySummary: async (date?: string) => {
+    const params = { report_date: date || new Date().toISOString().split('T')[0] }
+    const res = await api.get('/daily-reports/summary', { params })
+    return res.data
   }
 }

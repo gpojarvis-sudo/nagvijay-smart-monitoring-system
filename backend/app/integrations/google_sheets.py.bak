@@ -3,7 +3,6 @@ Google Sheets Integration - Two-way sync
 For bulk target management and achievement import
 """
 from __future__ import annotations
-import re
 
 from typing import List, Dict, Any, Optional
 import json
@@ -61,9 +60,8 @@ class GoogleSheetsIntegration:
             return values
         
         except Exception as e:
-            import traceback
-            logger.error("sheet_read_failed", error=str(e), traceback=traceback.format_exc(), spreadsheet_id=spreadsheet_id)
-            raise RuntimeError(f"Google Sheets error: {type(e).__name__}: {e}")
+            logger.error("sheet_read_failed", error=str(e), spreadsheet_id=spreadsheet_id)
+            raise
     
     async def write_sheet(self, spreadsheet_id: str, range_name: str, values: List[List[Any]]) -> Dict:
         """Write data to sheet"""
@@ -137,82 +135,7 @@ class GoogleSheetsIntegration:
             achievements.append(ach)
         
         return achievements
-
-
-    async def parse_daily_office_report_sheet(self, spreadsheet_id: str | None = None) -> List[Dict[str, Any]]:
-        """Parse daily office report sheet with proper column mapping"""
-
-        spreadsheet_id = spreadsheet_id or settings.GOOGLE_SHEETS_SPREADSHEET_ID
-        sheet_name = "Office wise"
-
-        rows = await self.read_sheet(
-            spreadsheet_id,
-            f"{sheet_name}!A1:ZZ1000",
-        )
-
-        if not rows or len(rows) < 3:
-            return []
-
-        header_row = rows[1] if len(rows) > 1 else []
-        headers = []
-        for h in header_row:
-            if h:
-                h = h.strip().lower()
-                h = re.sub(r'[\s./]+', '_', h)
-                h = re.sub(r'_+', '_', h)
-                if h.endswith('_'):
-                    h = h[:-1]
-                headers.append(h)
-            else:
-                headers.append('')
-
-        field_map = {
-            'office_name': 'office_name',
-            'date': 'report_date',
-            'no_of_sb_a_c_opened': 'sb_opened',
-            'no_of_sb_a_c_closed': 'sb_closed',
-            'net_accounts': 'net_accounts',
-            'no_of_new_policy': 'pli_policies',
-            'sum_assured': 'sum_assured',
-            'total_premium': 'premium',
-            'speed_post_documents_revenue': 'speed_post_document',
-            'speed_post_parcle_revenue': 'speed_post_parcel',
-            'business_post_revenue': 'business_post',
-            'internation_letter_revenue': 'international_letter',
-            'logistic_revenue': 'logistics',
-            'no_of_aadhar_txn': 'aadhaar_transactions',
-            'total_amount_of_aadhar': 'aadhaar_amount',
-        }
-
-        reports = []
-        for idx, row in enumerate(rows[2:], start=3):
-            if len(row) < len(headers):
-                row = row + [''] * (len(headers) - len(row))
-            row_dict = dict(zip(headers, row))
-            if not row_dict.get('office_name') or not row_dict.get('date'):
-                continue
-            report = {}
-            for header, value in row_dict.items():
-                if header in field_map:
-                    model_field = field_map[header]
-                    if value == '':
-                        value = None
-                    if model_field in ['sb_opened','sb_closed','net_accounts','pli_policies','aadhaar_transactions']:
-                        try:
-                            value = int(value) if value is not None else 0
-                        except:
-                            value = 0
-                    elif model_field in ['sum_assured','premium','speed_post_document','speed_post_parcel','business_post','international_letter','logistics','aadhaar_amount']:
-                        try:
-                            value = float(value) if value is not None else 0.0
-                        except:
-                            value = 0.0
-                    report[model_field] = value
-            report['office_name_original'] = row_dict.get('office_name')
-            report['_row_number'] = idx
-            reports.append(report)
-
-        return reports
+    
     async def export_dashboard_to_sheet(self, spreadsheet_id: str, dashboard_data: Dict[str, Any]) -> Dict:
         """Export dashboard stats to sheet for sharing"""
         
