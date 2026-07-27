@@ -25,6 +25,7 @@ settings = get_settings()
 
 
 
+
 @router.post("/forms/webhook", summary="Google Forms Webhook Receiver")
 async def forms_webhook(
     request: Request,
@@ -99,18 +100,6 @@ async def forms_webhook(
             "error": str(e),
             "message": "Failed to process form webhook",
         }
-
-        }
-    
-    except Exception as e:
-        # Log but return 200 to avoid Apps Script retries flooding? No, return error
-        return {
-            "success": False,
-            "error": str(e),
-            "message": "Failed to process form webhook",
-        }
-
-
 @router.get("/sheets/status", summary="Google Sheets Status")
 async def sheets_status(
     current_user: User = Depends(require_permission(Permission.INTEGRATION_READ)),
