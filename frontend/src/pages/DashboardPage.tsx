@@ -75,7 +75,7 @@ export default function DashboardPage() {
 
   // Combined KPI cards: first two are achievement-based, next two are daily operational
   const stats = [
-    { label: 'Total Offices', value: kpis.total_offices || 150, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
+    { label: 'Total Offices', value: kpis.total_offices || 0, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
     { label: 'Total Employees', value: kpis.total_employees || 420, icon: Users, color: 'bg-green-500', change: '+12 new' },
     { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
     { label: 'Daily Revenue (₹)', value: `₹${(daily.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'bg-orange-500', change: `Today's total` },
