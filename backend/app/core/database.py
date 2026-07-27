@@ -20,7 +20,7 @@ settings = get_settings()
 
 # Async Engine with production pooling
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    settings.DATABASE_URL + "?statement_cache_size=0",
     pool_pre_ping=True,
     poolclass=NullPool,
     isolation_level="AUTOCOMMIT",
