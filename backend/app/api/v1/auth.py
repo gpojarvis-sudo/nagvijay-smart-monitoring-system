@@ -3,14 +3,20 @@ Auth API - Google OAuth + JWT
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Request, Response, status
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Request, Response, status, Query
+from fastapi.responses import JSONResponse, RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.config import get_settings
 from app.core.exceptions import UnauthorizedException
-from app.schemas.auth import GoogleAuthRequest, RefreshTokenRequest, TokenResponse, UserInfo
+from app.schemas.auth import (
+    RegisterRequest,
+    LoginRequest,
+    RefreshTokenRequest,
+    TokenResponse,
+    UserInfo,
+)
 from app.services.auth_service import AuthService
 from app.dependencies.auth import get_current_user, get_current_active_user
 from app.models.user import User
@@ -20,46 +26,69 @@ router = APIRouter()
 settings = get_settings()
 
 
-@router.post("/google", response_model=dict, summary="Google OAuth Login")
-async def google_login(
-    payload: GoogleAuthRequest,
-    response: Response,
+
+@router.post("/register", response_model=dict, summary="Register with Email")
+async def register(
+    payload: RegisterRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """
-    Authenticate with Google ID token.
-    Frontend obtains ID token via Google OAuth SDK and sends it here.
-    Returns access + refresh tokens + user info.
-    """
     auth_service = AuthService(db)
-    result = await auth_service.authenticate_google(payload.id_token)
-    
+    result = await auth_service.register(payload)
+
     user = result["user"]
     tokens = result["tokens"]
     permissions = result["permissions"]
-    
-    # Optionally set httpOnly cookies for refresh token
-    # response.set_cookie(
-    #     key="refresh_token",
-    #     value=tokens["refresh_token"],
-    #     httponly=True,
-    #     secure=not settings.DEBUG,
-    #     samesite="lax",
-    #     max_age=settings.JWT_REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600,
-    # )
-    
+
     user_info = UserInfo(
         id=user.id,
         email=user.email,
         full_name=user.full_name,
         avatar_url=user.avatar_url,
-        role=user.role.value if hasattr(user.role, 'value') else str(user.role),
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
         is_active=user.is_active,
         office_id=user.office_id,
         employee_id=user.employee_id,
         permissions=permissions,
     )
-    
+
+    return {
+        "success": True,
+        "data": {
+            "access_token": tokens["access_token"],
+            "refresh_token": tokens["refresh_token"],
+            "token_type": "bearer",
+            "expires_in": settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            "user": user_info.model_dump(),
+        },
+        "message": "Registration successful",
+    }
+
+
+
+@router.post("/login", response_model=dict, summary="Login with Email")
+async def login(
+    payload: LoginRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    result = await auth_service.login(payload)
+
+    user = result["user"]
+    tokens = result["tokens"]
+    permissions = result["permissions"]
+
+    user_info = UserInfo(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        avatar_url=user.avatar_url,
+        role=user.role.value if hasattr(user.role, "value") else str(user.role),
+        is_active=user.is_active,
+        office_id=user.office_id,
+        employee_id=user.employee_id,
+        permissions=permissions,
+    )
+
     return {
         "success": True,
         "data": {
@@ -143,21 +172,4 @@ async def logout(
     }
 
 
-@router.get("/google/url", summary="Get Google OAuth URL")
-async def get_google_oauth_url():
-    """Get Google OAuth URL for redirect flow (alternative to ID token flow)"""
-    from app.integrations.google_oauth import get_google_auth_url
-    
-    if not settings.GOOGLE_CLIENT_ID:
-        return {
-            "success": False,
-            "message": "Google OAuth not configured",
-            "configured": False,
-        }
-    
-    url = get_google_auth_url(state="nsms-login")
-    
-    return {
-        "success": True,
-        "data": {"auth_url": url, "client_id": settings.GOOGLE_CLIENT_ID},
-    }
+

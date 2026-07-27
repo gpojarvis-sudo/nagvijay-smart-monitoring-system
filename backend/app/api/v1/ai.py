@@ -21,7 +21,7 @@ settings = get_settings()
 async def ai_chat(
     request: AIChatRequest,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    
 ):
     """
     Chat with NagVijay AI Assistant powered by Gemini.
@@ -41,10 +41,10 @@ async def ai_chat(
     service = AIService(db)
     
     user_context = {
-        "user_id": current_user.id,
-        "email": current_user.email,
-        "role": current_user.role.value if hasattr(current_user.role, 'value') else str(current_user.role),
-        "office_id": current_user.office_id,
+        "user_id": "dev-user",
+        "email": "dev@localhost",
+        "role": "admin",
+        "office_id": None,
         "division": "Nagpur City",
         "filters": request.context or {},
     }
@@ -61,7 +61,7 @@ async def ai_chat(
 @router.get("/anomalies", response_model=dict, summary="AI Anomaly Detection")
 async def detect_anomalies(
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
+    
 ):
     """Detect anomalies using AI analysis"""
     service = AIService(db)
@@ -71,7 +71,7 @@ async def detect_anomalies(
 
 @router.get("/health", response_model=dict, summary="AI Service Health")
 async def ai_health(
-    current_user: User = Depends(get_current_active_user),
+    
 ):
     from app.integrations.gemini_client import get_gemini_client
     

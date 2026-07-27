@@ -6,6 +6,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings
+from app.api.v1 import daily_reports
 
 api_router = APIRouter()
 
@@ -34,3 +35,4 @@ api_router.include_router(integrations.router, prefix="/integrations", tags=["In
 
 # Settings
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
+api_router.include_router(daily_reports.router, prefix="/daily-reports", tags=["Daily Reports"])

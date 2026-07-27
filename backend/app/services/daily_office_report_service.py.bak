@@ -1,0 +1,63 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.daily_office_report import DailyOfficeReport
+from app.models.office import Office
+
+
+class DailyOfficeReportService:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def upsert(self, data: dict) -> DailyOfficeReport:
+        office_code = data.get("office_code")
+        office_name = data.get("office_name")
+        office = None
+        if office_code:
+            office_result = await self.db.execute(
+                select(Office).where(Office.office_code == office_code)
+            )
+            office = office_result.scalars().first()
+        if office is None and office_name:
+            office_result = await self.db.execute(
+                select(Office).where(Office.office_name == office_name)
+            )
+            office = office_result.scalars().first()
+        if office is None:
+            raise ValueError(
+                f"Office not found: code={office_code}, name={office_name}"
+            )
+
+        office = office_result.scalars().first()
+
+        if office is None:
+            raise ValueError(
+                f"Office '{data['office_code']}' not found."
+            )
+
+        report_result = await self.db.execute(
+            select(DailyOfficeReport).where(
+                DailyOfficeReport.office_id == office.id,
+                DailyOfficeReport.report_date == data["report_date"],
+            )
+        )
+
+        report = report_result.scalars().first()
+
+        if report is None:
+            report = DailyOfficeReport(
+                office_id=office.id,
+                office_code=office.office_code,
+                office_name=office.office_name,
+                report_date=data["report_date"],
+            )
+            self.db.add(report)
+
+        for key, value in data.items():
+            if hasattr(report, key):
+                setattr(report, key, value)
+
+        await self.db.commit()
+        await self.db.refresh(report)
+
+        return report

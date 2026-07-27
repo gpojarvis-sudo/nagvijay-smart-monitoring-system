@@ -45,7 +45,6 @@ async def get_settings_api(
             },
             "integrations": {
                 "supabase_configured": bool(app_settings.SUPABASE_URL and app_settings.SUPABASE_SERVICE_ROLE_KEY),
-                "google_oauth_configured": bool(app_settings.GOOGLE_CLIENT_ID),
                 "gemini_configured": bool(app_settings.GEMINI_API_KEY),
                 "n8n_configured": bool(app_settings.N8N_WEBHOOK_URL),
                 "n8n_enabled": app_settings.N8N_ENABLED,
@@ -67,7 +66,6 @@ async def get_frontend_config():
             "app_name": app_settings.APP_NAME,
             "app_version": app_settings.APP_VERSION,
             "environment": app_settings.APP_ENV,
-            "google_client_id": app_settings.GOOGLE_CLIENT_ID,
             "supabase_url": app_settings.SUPABASE_URL,
             "supabase_anon_key": app_settings.SUPABASE_ANON_KEY,
             "division": "Nagpur City",

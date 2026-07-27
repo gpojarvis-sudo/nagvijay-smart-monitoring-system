@@ -14,19 +14,6 @@ class GoogleAuthRequest(BaseModel):
     access_token: Optional[str] = Field(default=None, description="Optional Google access token")
 
 
-
-
-class RegisterRequest(BaseModel):
-    email: EmailStr
-    full_name: str = Field(..., min_length=2, max_length=255)
-    password: str = Field(..., min_length=8)
-
-
-class LoginRequest(BaseModel):
-    employee_id: str
-    password: str
-
-
 class RefreshTokenRequest(BaseModel):
     refresh_token: str = Field(..., description="Refresh token")
 

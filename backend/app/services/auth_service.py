@@ -12,12 +12,23 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
-from app.core.security import create_tokens_pair, decode_token, create_access_token
-from app.core.exceptions import UnauthorizedException, BadRequestException, NotFoundException
+from app.core.security import (
+    create_tokens_pair,
+    decode_token,
+    create_access_token,
+    hash_password,
+    verify_password,
+)
+from app.core.exceptions import (
+    UnauthorizedException,
+    BadRequestException,
+    ConflictException,
+    NotFoundException,
+)
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.integrations.google_oauth import verify_google_token, get_google_user_info
 from app.constants.roles import UserRole, ROLE_PERMISSIONS
+from app.schemas.auth import RegisterRequest, LoginRequest
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -28,72 +39,6 @@ class AuthService:
         self.db = db
         self.user_repo = UserRepository(db)
     
-    async def authenticate_google(self, id_token: str) -> Dict[str, Any]:
-        """Authenticate with Google ID token"""
-        try:
-            google_user = await verify_google_token(id_token)
-            if not google_user:
-                raise UnauthorizedException("Invalid Google token")
-            
-            email = google_user.get("email")
-            if not email:
-                raise BadRequestException("Email not found in Google token")
-            
-            # Check domain restriction if needed (for India Post - allow all for MVP)
-            # if not email.endswith("@indiapost.gov.in") and not email.endswith("@gmail.com"):
-            #     raise ForbiddenException("Only India Post domain allowed")
-            
-            # Find or create user
-            user = await self.user_repo.get_by_email(email)
-            
-            if not user:
-                # Auto-create user for MVP - In production, might need admin approval
-                user_data = {
-                    "id": str(uuid.uuid4()),
-                    "email": email,
-                    "full_name": google_user.get("name", email.split("@")[0]),
-                    "avatar_url": google_user.get("picture"),
-                    "google_id": google_user.get("sub"),
-                    "role": UserRole.EMPLOYEE,
-                    "is_active": True,
-                    "is_verified": google_user.get("email_verified", False),
-                    "last_login_at": datetime.now(timezone.utc),
-                }
-                user = await self.user_repo.create(user_data)
-                logger.info("new_user_created_via_google", email=email, user_id=user.id)
-            else:
-                # Update last login and google_id if missing
-                update_data = {"last_login_at": datetime.now(timezone.utc)}
-                if not user.google_id:
-                    update_data["google_id"] = google_user.get("sub")
-                if not user.avatar_url and google_user.get("picture"):
-                    update_data["avatar_url"] = google_user.get("picture")
-                user = await self.user_repo.update(user.id, update_data)
-                
-                if not user.is_active:
-                    raise UnauthorizedException("User account is deactivated")
-            
-            # Create tokens
-            permissions = [p.value for p in ROLE_PERMISSIONS.get(user.role, [])]
-            extra_claims = {
-                "email": user.email,
-                "role": user.role.value if hasattr(user.role, 'value') else str(user.role),
-                "permissions": permissions,
-            }
-            
-            tokens = create_tokens_pair(user.id, extra_claims)
-            
-            return {
-                "user": user,
-                "tokens": tokens,
-                "permissions": permissions,
-            }
-        
-        except UnauthorizedException:
-            raise
-        except Exception as e:
-            logger.error("google_auth_failed", error=str(e))
-            raise UnauthorizedException(f"Google authentication failed: {str(e)}")
     
     async def refresh_tokens(self, refresh_token: str) -> Dict[str, Any]:
         """Refresh access token"""
@@ -130,6 +75,71 @@ class AuthService:
         except ValueError as e:
             raise UnauthorizedException(str(e))
     
+
+    async def register(self, data: RegisterRequest) -> Dict[str, Any]:
+        """Register with email and password"""
+        existing = await self.user_repo.get_by_email(data.email)
+        if existing:
+            raise ConflictException("Email already registered")
+
+        user = await self.user_repo.create({
+            "email": data.email,
+            "full_name": data.full_name,
+            "hashed_password": hash_password(data.password),
+            "role": UserRole.EMPLOYEE,
+            "is_active": True,
+            "is_verified": False,
+        })
+
+        permissions = [p.value for p in ROLE_PERMISSIONS.get(user.role, [])]
+
+        extra_claims = {
+            "email": user.email,
+            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            "permissions": permissions,
+        }
+
+        tokens = create_tokens_pair(user.id, extra_claims)
+
+        return {
+            "user": user,
+            "tokens": tokens,
+            "permissions": permissions,
+        }
+
+
+    async def login(self, data: LoginRequest) -> Dict[str, Any]:
+        """Login with email and password"""
+        user = await self.user_repo.get_by_employee_id(data.employee_id)
+
+        if not user:
+            raise UnauthorizedException("Invalid Employee ID or password")
+
+        if not user.hashed_password:
+            raise UnauthorizedException("Password login is not configured for this account.")
+
+        if not verify_password(data.password, user.hashed_password):
+            raise UnauthorizedException("Invalid Employee ID or password")
+
+        if not user.is_active:
+            raise UnauthorizedException("User account is deactivated")
+
+        permissions = [p.value for p in ROLE_PERMISSIONS.get(user.role, [])]
+
+        extra_claims = {
+            "email": user.email,
+            "role": user.role.value if hasattr(user.role, "value") else str(user.role),
+            "permissions": permissions,
+        }
+
+        tokens = create_tokens_pair(user.id, extra_claims)
+
+        return {
+            "user": user,
+            "tokens": tokens,
+            "permissions": permissions,
+        }
+
     async def get_user_by_id(self, user_id: str) -> Optional[User]:
         return await self.user_repo.get_by_id(user_id)
     

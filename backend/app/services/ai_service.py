@@ -12,6 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.integrations.gemini_client import GeminiClient
+from app.integrations.cloudflare_client import CloudflareClient
+from app.integrations.cloudflare_client import CloudflareClient
+from app.integrations.cloudflare_client import CloudflareClient
 from app.services.analytics_service import AnalyticsService
 from app.schemas.analytics import AnalyticsFilter
 
@@ -23,7 +26,12 @@ class AIService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.analytics_service = AnalyticsService(db)
-        self.gemini_client = GeminiClient() if settings.GEMINI_API_KEY else None
+        if settings.AI_PROVIDER.lower() == "cloudflare":
+            self.gemini_client = CloudflareClient()
+        elif settings.GEMINI_API_KEY:
+            self.gemini_client = GeminiClient()
+        else:
+            self.gemini_client = None
     
     async def chat(self, message: str, conversation_id: Optional[str] = None, user_context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """AI Chatbot - context-aware with analytics"""

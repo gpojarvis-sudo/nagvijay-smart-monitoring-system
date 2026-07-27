@@ -1,0 +1,35 @@
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.exceptions import BadRequestException
+from app.integrations.google_forms import GoogleFormsIntegration
+from app.models.office import Office
+from app.models.target import (
+    Scheme,
+    Target,
+    TargetAllocation,
+)
+from app.schemas.target import AchievementCreate
+from app.services.target_service import TargetService
+from app.utils.helpers import get_financial_year
+
+
+class FormImportService:
+    @staticmethod
+    async def process(parsed: dict, db: AsyncSession):
+        # Office Lookup
+        office_result = await db.execute(
+            select(Office).where(
+                Office.office_code == parsed["office_code"]
+            )
+        )
+
+        office = office_result.scalars().first()
+
+        if not office:
+            raise BadRequestException(
+                f"Office {parsed['office_code']} not found"
+            )
+
+        # TODO: आगे का Logic अगले Step में जोड़ेंगे
+        return office
