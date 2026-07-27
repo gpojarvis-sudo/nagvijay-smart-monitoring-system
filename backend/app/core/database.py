@@ -19,7 +19,7 @@ logger = structlog.get_logger(__name__)
 settings = get_settings()
 
 # Async Engine with production pooling
-engine = create_async_engine(
+, pool_pre_ping=True,
     settings.DATABASE_URL,
     poolclass=NullPool,
     isolation_level="AUTOCOMMIT",
