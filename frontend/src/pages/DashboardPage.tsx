@@ -5,6 +5,28 @@ import { Building2, Users, Target, TrendingUp, AlertTriangle, CheckCircle, BarCh
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid } from 'recharts'
 import { dashboardService } from '@/services/dashboardService'
 
+
+const downloadExcel = async (date: string) => {
+  try {
+    const token = localStorage.getItem('access_token');
+    const res = await fetch(`/api/v1/daily-reports/export?report_date=${date}&format=excel`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Download failed');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `daily_report_${date}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('Failed to download Excel: ' + err.message);
+  }
+};
+
 export default function DashboardPage() {
   const today = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(today)
