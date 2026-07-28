@@ -6,7 +6,7 @@ from app.dependencies.auth import get_current_active_user
 from app.models.user import User
 from app.services.ai_insights_service import AIInsightsService
 
-router = APIRouter(prefix="/ai-insights", tags=["AI Insights"])
+router = APIRouter(tags=["AI Insights"])
 
 @router.get("/daily")
 async def get_daily_insights(
