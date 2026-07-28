@@ -75,6 +75,16 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
+  const { data: officeStats } = useQuery({
+    queryKey: ['officeStats'],
+    queryFn: async () => {
+      const res = await api.get('/offices/stats');
+      return res.data;
+    },
+    retry: 1,
+    refetchInterval: 60000,
+  });
+
   const { data: healthData } = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
@@ -381,10 +391,10 @@ export default function DashboardPage() {
             <p className="text-sm text-gray-300 mt-1">Enterprise platform for India Post • Version {healthData?.version || '1.0.0-MVP'} • {healthData?.environment || 'development'} • Division: Nagpur City</p>
           </div>
           <div className="flex gap-2">
-            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">HO: 1</span>
-            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">SO: 35</span>
-            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">BO: 114</span>
-            <span className="px-3 py-1 bg-red-500 rounded-full text-xs font-medium">Total: 150</span>
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">HO: {officeStats?.head_office || 0}</span>
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">SO: {(officeStats?.sub_office || 0) + (officeStats?.other || 0)}</span>
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs">BO: {officeStats?.branch_office || 0}</span>
+            <span className="px-3 py-1 bg-red-500 rounded-full text-xs font-medium">Total: {officeStats?.total || 0}</span>
           </div>
         </div>
       </div>
