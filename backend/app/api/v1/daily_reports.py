@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from typing import Optional, List
 from fastapi import APIRouter, Depends, Query, Response
+from openpyxl import Workbook
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
 from app.dependencies.auth import get_current_active_user
@@ -59,10 +60,8 @@ async def export_daily_report(
     if format == "csv":
         output = io.StringIO()
         writer = csv.writer(output)
-        # Write headers
         if reports:
             headers = list(reports[0].__dict__.keys())
-            # Remove SQLAlchemy internal keys
             headers = [h for h in headers if not h.startswith('_')]
             writer.writerow(headers)
             for r in reports:
@@ -82,6 +81,26 @@ async def export_daily_report(
             content=json.dumps(data, default=str),
             media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename=daily_report_{report_date.isoformat()}.json"}
+        )
+    
+    elif format == "excel":
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Daily Report"
+        if reports:
+            headers = list(reports[0].__dict__.keys())
+            headers = [h for h in headers if not h.startswith('_')]
+            ws.append(headers)
+            for r in reports:
+                row = [getattr(r, h) for h in headers]
+                ws.append(row)
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        return Response(
+            content=output.getvalue(),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f"attachment; filename=daily_report_{report_date.isoformat()}.xlsx"}
         )
 
 @router.get("/non-reporting", summary="Non-Reporting Offices for a Date")
