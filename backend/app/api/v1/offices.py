@@ -159,3 +159,23 @@ async def bulk_import_offices(
         },
         "message": f"Imported {result['created_count']} offices, {result['error_count']} errors",
     }
+
+@router.get("/stats", summary="Office Statistics by Type")
+async def get_office_stats(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    from sqlalchemy import func, select
+    from app.models.office import Office
+    stmt = select(Office.office_type, func.count(Office.id)).group_by(Office.office_type)
+    result = await db.execute(stmt)
+    counts = {row[0].value if hasattr(row[0], 'value') else str(row[0]): row[1] for row in result}
+    total = sum(counts.values())
+    return {
+        "head_office": counts.get("HEAD_OFFICE", 0),
+        "sub_office": counts.get("SUB_OFFICE", 0),
+        "branch_office": counts.get("BRANCH_OFFICE", 0),
+        "admin_office": counts.get("ADMIN_OFFICE", 0),
+        "other": counts.get("OTHER", 0),
+        "total": total,
+    }
