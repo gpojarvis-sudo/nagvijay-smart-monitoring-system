@@ -11,7 +11,7 @@ import io
 import csv
 import json
 
-router = APIRouter(prefix="/daily-reports", tags=["Daily Reports"])
+router = APIRouter(tags=["Daily Reports"])
 
 @router.get("/", response_model=List[DailyReportResponse])
 async def get_daily_reports(
