@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors
-from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors
+from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors, ai_insights
+from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors, ai_insights
 
 api_router = APIRouter()
 
@@ -37,3 +37,4 @@ api_router.include_router(integrations.router, prefix="/integrations", tags=["In
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 api_router.include_router(daily_reports.router, prefix="/daily-reports", tags=["Daily Reports"])
 api_router.include_router(sync_errors.router, prefix="/sync-errors", tags=["Sync Errors"])
+api_router.include_router(ai_insights.router, prefix="/ai-insights", tags=["AI Insights"])

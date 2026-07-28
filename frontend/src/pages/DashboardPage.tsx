@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
 import { Building2, Users, Target, TrendingUp, AlertTriangle, CheckCircle, BarChart3, Activity, Calendar, DollarSign, FileText } from 'lucide-react'
@@ -6,8 +7,9 @@ import { dashboardService } from '@/services/dashboardService'
 
 export default function DashboardPage() {
   const today = new Date().toISOString().split('T')[0]
+  const [selectedDate, setSelectedDate] = useState(today)
 
-  // Existing analytics data
+  // Analytics dashboard
   const { data: dashboardData, isLoading: analyticsLoading } = useQuery({
     queryKey: ['dashboard', 'Nagpur City'],
     queryFn: async () => {
@@ -18,11 +20,33 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
-  // New daily report summary
+  // Daily summary for selected date
   const { data: dailySummary, isLoading: dailyLoading } = useQuery({
-    queryKey: ['dailySummary', today],
+    queryKey: ['dailySummary', selectedDate],
     queryFn: async () => {
-      const res = await api.get('/daily-reports/summary', { params: { report_date: today } })
+      const res = await api.get('/daily-reports/summary', { params: { report_date: selectedDate } })
+      return res.data
+    },
+    retry: 1,
+    refetchInterval: 60000,
+  })
+
+  // Non-reporting offices
+  const { data: nonReporting, isLoading: nonReportingLoading } = useQuery({
+    queryKey: ['nonReporting', selectedDate],
+    queryFn: async () => {
+      const res = await api.get('/daily-reports/non-reporting', { params: { report_date: selectedDate } })
+      return res.data
+    },
+    retry: 1,
+    refetchInterval: 60000,
+  })
+
+  // Duplicate errors (Feature 1)
+  const { data: syncErrors, isLoading: syncErrorsLoading } = useQuery({
+    queryKey: ['syncErrors'],
+    queryFn: async () => {
+      const res = await api.get('/sync-errors/recent?limit=5&error_type=WEBHOOK')
       return res.data
     },
     retry: 1,
@@ -37,18 +61,7 @@ export default function DashboardPage() {
     }
   })
 
-  const isLoading = analyticsLoading || dailyLoading
-
-  if (isLoading) {
-    return (
-      <div className="space-y-6 animate-pulse">
-        <div className="h-20 bg-gray-200 rounded-xl"></div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>)}
-        </div>
-      </div>
-    )
-  }
+  const isLoading = analyticsLoading || dailyLoading || nonReportingLoading || syncErrorsLoading
 
   const kpis = dashboardData?.kpis || {
     total_offices: 0,
@@ -60,7 +73,6 @@ export default function DashboardPage() {
     pending_verifications: 0,
   }
 
-  // Daily summary data (from Google Sheets sync)
   const daily = dailySummary || {
     total_offices: 0,
     total_sb_opened: 0,
@@ -70,12 +82,11 @@ export default function DashboardPage() {
     total_sum_assured: 0,
     total_premium: 0,
     total_revenue: 0,
-    report_date: today,
+    report_date: selectedDate,
   }
 
-  // Combined KPI cards: first two are achievement-based, next two are daily operational
   const stats = [
-    { label: 'Total Offices', value: kpis.total_offices || 0, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
+    { label: 'Total Offices', value: kpis.total_offices || 150, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
     { label: 'Total Employees', value: kpis.total_employees || 420, icon: Users, color: 'bg-green-500', change: '+12 new' },
     { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
     { label: 'Daily Revenue (₹)', value: `₹${(daily.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'bg-orange-500', change: `Today's total` },
@@ -102,13 +113,22 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Date Picker */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring • {daily.report_date ? `Daily Report: ${daily.report_date}` : 'No daily data yet'}</p>
+          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-sm">
+            <Calendar size={18} className="text-gray-500" />
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border-0 focus:ring-0 text-sm font-medium text-gray-700 bg-transparent"
+            />
+          </div>
           <div className={`px-3 py-1 rounded-full text-xs font-medium border ${healthData?.status === 'healthy' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
             <span className="flex items-center gap-1.5"><span className={`w-2 h-2 rounded-full ${healthData?.status === 'healthy' ? 'bg-green-500' : 'bg-amber-500'}`}></span> System {healthData?.status || 'checking'}</span>
           </div>
@@ -136,7 +156,6 @@ export default function DashboardPage() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Achievement Trend */}
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Activity size={18} className="text-red-600" /> Achievement Trend (30 Days)</h3>
@@ -155,7 +174,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Scheme Wise */}
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-semibold text-gray-900 flex items-center gap-2"><BarChart3 size={18} className="text-blue-600" /> Scheme-wise Achievement</h3>
@@ -175,11 +193,11 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Daily Operational Stats (New) */}
+      {/* Daily Office Report Summary */}
       <div className="bg-white rounded-xl border shadow-sm p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-semibold text-gray-900 flex items-center gap-2"><Calendar size={18} className="text-indigo-600" /> Daily Office Report Summary</h3>
-          <span className="text-xs text-gray-500">{daily.report_date || 'No data'}</span>
+          <span className="text-xs text-gray-500">{daily.report_date || selectedDate}</span>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="p-4 bg-blue-50 rounded-lg">
@@ -217,9 +235,65 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Second Row */}
+      {/* Non-Reporting Offices */}
+      <div className="bg-white rounded-xl border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2"><AlertTriangle size={18} className="text-amber-600" /> Non-Reporting Offices</h3>
+          <span className="text-xs text-gray-500">{nonReporting?.report_date || selectedDate}</span>
+        </div>
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {nonReporting?.non_reporting_offices?.length > 0 ? (
+            nonReporting.non_reporting_offices.slice(0, 10).map((office: any, i: number) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
+                <div>
+                  <p className="font-medium text-sm text-gray-900">{office.office_name}</p>
+                  <p className="text-xs text-gray-500">{office.office_code} • {office.office_type}</p>
+                </div>
+                <span className="text-xs font-medium text-red-600 bg-white px-2.5 py-1 rounded-full border">No Report</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-green-600">
+              <CheckCircle size={40} className="mx-auto mb-2" />
+              <p className="font-medium">All offices have reported!</p>
+              <p className="text-sm text-gray-500">Complete data for {nonReporting?.report_date || selectedDate}</p>
+            </div>
+          )}
+          {nonReporting?.non_reporting_offices?.length > 10 && (
+            <p className="text-xs text-gray-500 text-center">+ {nonReporting.non_reporting_offices.length - 10} more</p>
+          )}
+        </div>
+      </div>
+
+      {/* 🔹 Duplicate Alerts Card (Feature 1) */}
+      <div className="bg-white rounded-xl border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="font-semibold text-gray-900 flex items-center gap-2"><AlertTriangle size={18} className="text-orange-600" /> Duplicate Submission Alerts</h3>
+          <span className="text-xs text-gray-500">Recent duplicates</span>
+        </div>
+        <div className="space-y-3 max-h-64 overflow-y-auto">
+          {syncErrors?.length > 0 ? (
+            syncErrors.slice(0, 5).map((err: any, i: number) => (
+              <div key={i} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100">
+                <div>
+                  <p className="font-medium text-sm text-gray-900">{err.office_name || err.office_code}</p>
+                  <p className="text-xs text-gray-500">Date: {err.error_date} • {err.error_type}</p>
+                </div>
+                <span className="text-xs font-medium text-orange-700 bg-white px-2.5 py-1 rounded-full border">{err.error_message.slice(0, 30)}...</span>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-green-600">
+              <CheckCircle size={40} className="mx-auto mb-2" />
+              <p className="font-medium">No duplicate alerts</p>
+              <p className="text-sm text-gray-500">All submissions are unique</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Second Row - Top and Low Performers */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top Performers */}
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><CheckCircle size={18} className="text-green-600" /> Top Performers</h3>
           <div className="space-y-3">
@@ -239,7 +313,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Low Performers */}
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle size={18} className="text-amber-600" /> Needs Attention</h3>
           <div className="space-y-3">
@@ -259,7 +332,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Quick Stats Pie */}
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4">Target Distribution</h3>
           <div className="h-[200px]">
