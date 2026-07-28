@@ -5,8 +5,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import , daily_reports, sync_errors
-from app.api.v1 import , daily_reports, sync_errors
+from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors
+from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors
 
 api_router = APIRouter()
 
