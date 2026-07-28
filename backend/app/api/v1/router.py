@@ -36,3 +36,4 @@ api_router.include_router(integrations.router, prefix="/integrations", tags=["In
 # Settings
 api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
 api_router.include_router(daily_reports.router, prefix="/daily-reports", tags=["Daily Reports"])
+api_router.include_router(sync_errors.router, prefix="/sync-errors", tags=["Sync Errors"])
