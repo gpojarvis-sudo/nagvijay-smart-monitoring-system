@@ -64,6 +64,19 @@ class DailyOfficeReportService:
                 report_date=report_date,
             )
             self.db.add(report)
+        else:
+            # Duplicate detected – log to sync_errors
+            from app.models.sync_error import SyncError
+            from app.constants.status import SyncErrorType
+            from datetime import datetime as dt
+            error_log = SyncError(
+                error_date=dt.utcnow().date(),
+                office_name=office.office_name,
+                office_code=office.office_code,
+                error_type=SyncErrorType.WEBHOOK,
+                error_message=f"Duplicate submission for {office.office_name} on {report_date}",
+            )
+            self.db.add(error_log)
 
         for key, value in data.items():
             if hasattr(report, key) and key not in ('office_code', 'office_name', 'office_name_original', '_row_number', 'report_date'):
