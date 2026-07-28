@@ -23,7 +23,7 @@ const downloadExcel = async (date: string) => {
     a.remove();
     window.URL.revokeObjectURL(url);
   } catch (err) {
-    alert('Failed to download Excel: ' + err.message);
+    alert('Failed to download Excel: ' + (err as any).message);
   }
 };
 
