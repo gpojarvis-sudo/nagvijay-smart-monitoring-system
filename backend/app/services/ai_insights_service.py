@@ -1,12 +1,11 @@
 """
-AI Insights Service – Generates daily insights using Gemini
+AI Insights Service – Generates daily insights using configured AI provider (Cloudflare/Gemini)
 """
 from datetime import date
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import structlog
-from app.integrations.gemini_client import get_gemini_client
-from app.services.daily_office_report_service import DailyOfficeReportService
 from app.core.config import get_settings
+from app.services.daily_office_report_service import DailyOfficeReportService
 
 logger = structlog.get_logger(__name__)
 settings = get_settings()
@@ -16,26 +15,30 @@ class AIInsightsService:
     def __init__(self, db):
         self.db = db
         self.daily_service = DailyOfficeReportService(db)
-        self.gemini = get_gemini_client()
+        self.ai_client = self._get_ai_client()
+
+    def _get_ai_client(self):
+        """Return the appropriate AI client based on settings.AI_PROVIDER"""
+        if settings.AI_PROVIDER == "cloudflare":
+            from app.integrations.cloudflare_client import CloudflareClient
+            return CloudflareClient()
+        else:
+            from app.integrations.gemini_client import get_gemini_client
+            return get_gemini_client()
 
     async def generate_insights(self, report_date: date, division: str = "Nagpur City") -> Dict[str, Any]:
-        """Generate AI insights for a given date"""
-        
-        # Check if Gemini is configured
-        if not self.gemini.is_configured():
+        if not self.ai_client.is_configured():
             return {
                 "status": "not_configured",
-                "message": "GEMINI_API_KEY is not set. Please configure it in environment variables.",
+                "message": f"{settings.AI_PROVIDER.upper()} is not configured. Please set required environment variables.",
                 "insights": None
             }
 
-        # Fetch daily summary and office-wise data
         summary = await self.daily_service.get_summary(report_date=report_date, division=division)
         reports = await self.daily_service.get_reports(report_date=report_date, division=division)
 
-        # Prepare data for prompt
         office_list = []
-        for r in reports[:20]:  # Limit to 20 offices for prompt size
+        for r in reports[:20]:
             office_list.append(
                 f"Office: {r.office_name} | SB Opened: {r.sb_opened} | SB Closed: {r.sb_closed} | "
                 f"Net Accounts: {r.net_accounts} | PLI Policies: {r.pli_policies} | "
@@ -54,7 +57,6 @@ Analyze the following daily office report data for {report_date.isoformat()} and
 - Total PLI Policies: {summary['total_pli_policies']}
 - Total Premium (₹): {summary['total_premium']}
 - Total Sum Assured (₹): {summary['total_sum_assured']}
-- Total Aadhaar Transactions: {summary.get('aadhaar_transactions', 0)}
 - Total Revenue (₹): {summary['total_revenue']}
 
 **Top 20 Offices (by revenue/performance):**
@@ -69,13 +71,13 @@ Based on this data, please provide:
 Keep your response concise, professional, and actionable. Use bullet points where appropriate.
 """
 
-        # Call Gemini
         try:
-            response = await self.gemini.generate_text(prompt)
+            response = await self.ai_client.generate_text(prompt)
             return {
                 "status": "success",
                 "report_date": report_date.isoformat(),
                 "division": division,
+                "provider": settings.AI_PROVIDER,
                 "insights": response,
                 "summary": summary,
                 "office_count": len(reports)
@@ -86,6 +88,7 @@ Keep your response concise, professional, and actionable. Use bullet points wher
                 "status": "error",
                 "report_date": report_date.isoformat(),
                 "division": division,
+                "provider": settings.AI_PROVIDER,
                 "error": str(e),
                 "insights": None
             }
