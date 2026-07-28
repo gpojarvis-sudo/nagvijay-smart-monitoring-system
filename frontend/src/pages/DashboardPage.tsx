@@ -119,27 +119,14 @@ export default function DashboardPage() {
 
   const stats = [
     { label: 'Total Offices', value: kpis.total_offices || 0, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
-    { label: 'Total Employees', value: kpis.total_employees || 420, icon: Users, color: 'bg-green-500', change: '+12 new' },
+    { label: 'Total Employees', value: kpis.total_employees || 0, icon: Users, color: 'bg-green-500', change: '+12 new' },
     { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
     { label: 'Daily Revenue (₹)', value: `₹${(daily.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'bg-orange-500', change: `Today's total` },
   ]
 
-  const schemeData = dashboardData?.scheme_wise || [
-    { label: 'PLI', value: 145 },
-    { label: 'RPLI', value: 98 },
-    { label: 'SSA', value: 76 },
-    { label: 'TD', value: 112 },
-    { label: 'Business', value: 54 },
-  ]
+  const schemeData = dashboardData?.scheme_wise || []
 
-  const achievementTrend = dashboardData?.achievement_trend || [
-    { date: '2024-01-01', achieved: 45 },
-    { date: '2024-01-02', achieved: 52 },
-    { date: '2024-01-03', achieved: 48 },
-    { date: '2024-01-04', achieved: 61 },
-    { date: '2024-01-05', achieved: 55 },
-    { date: '2024-01-06', achieved: 67 },
-  ]
+  const achievementTrend = dashboardData?.achievement_trend || []
 
   const COLORS = ['#DC2626', '#1E40AF', '#059669', '#D97706', '#7C3AED', '#DB2777']
 
@@ -329,11 +316,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><CheckCircle size={18} className="text-green-600" /> Top Performers</h3>
           <div className="space-y-3">
-            {(dashboardData?.top_performers || [
-              { office_name: 'Nagpur HO', office_code: 'NG-HO-001', percentage: 95.2, achieved: 145, target: 152 },
-              { office_name: 'Sitabuldi SO', office_code: 'NG-SO-012', percentage: 89.5, achieved: 98, target: 110 },
-              { office_name: 'Dharampeth SO', office_code: 'NG-SO-008', percentage: 87.3, achieved: 76, target: 87 },
-            ]).map((perf: any, i: number) => (
+            {(dashboardData?.top_performers || []).map((perf: any, i: number) => (
               <div key={i} className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-100">
                 <div>
                   <p className="font-medium text-sm text-gray-900">{perf.office_name}</p>
@@ -348,11 +331,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2"><AlertTriangle size={18} className="text-amber-600" /> Needs Attention</h3>
           <div className="space-y-3">
-            {(dashboardData?.low_performers || [
-              { office_name: 'Itwari BO', office_code: 'NG-BO-045', percentage: 23.5, achieved: 12, target: 51 },
-              { office_name: 'Kamptee BO', office_code: 'NG-BO-032', percentage: 31.2, achieved: 18, target: 58 },
-              { office_name: 'Hingna BO', office_code: 'NG-BO-067', percentage: 38.7, achieved: 24, target: 62 },
-            ]).map((perf: any, i: number) => (
+            {(dashboardData?.low_performers || []).map((perf: any, i: number) => (
               <div key={i} className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                 <div>
                   <p className="font-medium text-sm text-gray-900">{perf.office_name}</p>
@@ -377,8 +356,8 @@ export default function DashboardPage() {
             </ResponsiveContainer>
           </div>
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-600"></span> Pending Verifications: {kpis.pending_verifications || 12}</div>
-            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500"></span> Active Schemes: {kpis.active_schemes || 8}</div>
+            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-red-600"></span> Pending Verifications: {kpis.pending_verifications || 0}</div>
+            <div className="flex items-center gap-2"><span className="w-3 h-3 rounded-full bg-green-500"></span> Active Schemes: {kpis.active_schemes || 0}</div>
           </div>
         </div>
       </div>
