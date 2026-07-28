@@ -8,7 +8,7 @@ from app.services.sync_error_service import SyncErrorService
 from pydantic import BaseModel
 from datetime import datetime
 
-router = APIRouter(prefix="/sync-errors", tags=["Sync Errors"])
+router = APIRouter(prefix="", tags=["Sync Errors"])
 
 class SyncErrorResponse(BaseModel):
     id: int
