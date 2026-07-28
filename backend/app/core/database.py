@@ -27,9 +27,6 @@ engine = create_async_engine(
     connect_args={
         "ssl": "require",
         "statement_cache_size": 0,
-        "server_settings": {
-            "statement_cache_mode": "none"  # Disable prepared statements for pgbouncer
-        }
     },
     echo=settings.DEBUG,
 )
