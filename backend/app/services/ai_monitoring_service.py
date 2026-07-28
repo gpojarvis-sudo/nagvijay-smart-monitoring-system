@@ -23,6 +23,7 @@ settings = get_settings()
 class AIMonitoringEngine:
     def __init__(self, db: AsyncSession = None):
         self.db = db
+        self.cloudflare = CloudflareClient()
 
     async def get_session(self):
         if self.db:
