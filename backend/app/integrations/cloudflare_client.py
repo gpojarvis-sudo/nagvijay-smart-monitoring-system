@@ -78,3 +78,9 @@ class CloudflareClient:
                         return choice["message"]["content"]
 
         raise RuntimeError(f"Unexpected Cloudflare response: {data}")
+
+    def is_configured(self) -> bool:
+        return bool(self.account_id and self.api_token)
+
+    async def generate_text(self, prompt: str) -> str:
+        return await self.generate_response(message=prompt)
