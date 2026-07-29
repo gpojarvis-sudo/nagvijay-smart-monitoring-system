@@ -5,7 +5,7 @@ from app.dependencies.auth import get_current_active_user
 from app.models.user import User
 from app.services.end_of_day_pipeline import EndOfDayPipeline
 
-router = APIRouter(prefix="/pipeline", tags=["Pipeline"])
+router = APIRouter(tags=["Pipeline"])
 
 @router.post("/eod-run")
 async def trigger_eod_pipeline(
