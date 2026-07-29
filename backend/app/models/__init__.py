@@ -1,5 +1,6 @@
 from .daily_office_report import DailyOfficeReport
 from .sync_error import SyncError
+from .pipeline_state import PipelineState
 """Models package"""
 from app.core.database import Base
 
