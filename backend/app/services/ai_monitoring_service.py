@@ -273,7 +273,16 @@ class AIMonitoringEngine:
 
         return recommendations
 
-    async def _generate_ai_brief(self, summary: Dict) -> str:
+    
+    def _clean_ai_response(self, response: str) -> str:
+        """Remove reasoning blocks like <think>...</think> from AI response."""
+        import re
+        # Remove <think>...</think> blocks (non-greedy, with newlines)
+        cleaned = re.sub(r'<think>.*?</think>', '', response, flags=re.DOTALL)
+        # Strip extra whitespace
+        return cleaned.strip()
+
+async def _generate_ai_brief(self, summary: Dict) -> str:
         """Generate a natural language brief using Cloudflare DeepSeek."""
         # Prepare a concise prompt
         high_risk = summary.get('offices_requiring_attention', [])
@@ -294,4 +303,4 @@ Provide a brief summary (3-4 sentences) that highlights the overall health, crit
 Keep it professional and actionable.
 """
         response = await self.cloudflare.generate_response(message=prompt)
-        return response.strip()
+        return self._clean_ai_response(response)
