@@ -198,3 +198,14 @@ for route in app.routes:
     if isinstance(route, APIRoute):
         print(f"{' '.join(route.methods):<10} {route.path}")
 print("==================================\n")
+
+# DIAGNOSTIC: Print all registered routes
+from fastapi.routing import APIRoute
+print("\n==================================")
+print("REGISTERED ROUTES")
+print("==================================")
+for route in app.routes:
+    if isinstance(route, APIRoute):
+        methods = ",".join(sorted(route.methods or []))
+        print(f"{methods:15} {route.path}")
+print("==================================\n")
