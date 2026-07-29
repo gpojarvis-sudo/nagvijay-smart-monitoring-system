@@ -1,4 +1,3 @@
-print("🚀 MAIN.PY STARTING")
 """
 NagVijay Smart Monitoring System (NSMS) - Main Application Entry
 Enterprise Monitoring Platform for India Post - Nagpur City Division
@@ -44,7 +43,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info("database_initialized")
     except Exception as e:
         logger.error("database_init_failed", error=str(e))
-        # Don't fail startup, will retry on first request
     
     # Initialize scheduler
     if settings.ENABLE_SCHEDULER:
@@ -132,7 +130,7 @@ def create_application() -> FastAPI:
     if not settings.DEBUG:
         app.add_middleware(
             TrustedHostMiddleware,
-            allowed_hosts=["*"],  # Configure via env in production
+            allowed_hosts=["*"],
         )
     
     # Exception handlers
@@ -141,20 +139,8 @@ def create_application() -> FastAPI:
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     
     # Include API router
-    
     app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-    print("========== REGISTERED ROUTES ==========", flush=True); print("ROUTE COUNT:", len(app.routes), flush=True)
-    for route in app.routes:
-        if hasattr(route, "methods"):
-            logger.info(
-                "registered_route",
-                path=route.path,
-                methods=",".join(sorted(route.methods)),
-            )
-    print("=======================================", flush=True)
-
-    
     # Root endpoint
     @app.get("/", tags=["Root"])
     async def root():
@@ -178,27 +164,6 @@ def create_application() -> FastAPI:
 
 app = create_application()
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(
-        "main:app",
-        host=settings.HOST,
-        port=settings.BACKEND_PORT,
-        reload=settings.DEBUG,
-        workers=1 if settings.DEBUG else 2,
-        log_level=settings.LOG_LEVEL.lower(),
-    )
-
-# DIAGNOSTIC: Print all registered routes
-from fastapi.routing import APIRoute
-print("\n==================================")
-print("REGISTERED ROUTES")
-print("==================================")
-for route in app.routes:
-    if isinstance(route, APIRoute):
-        print(f"{' '.join(route.methods):<10} {route.path}")
-print("==================================\n")
-
 # DIAGNOSTIC: Print all registered routes
 from fastapi.routing import APIRoute
 print("\n==================================")
@@ -209,3 +174,14 @@ for route in app.routes:
         methods = ",".join(sorted(route.methods or []))
         print(f"{methods:15} {route.path}")
 print("==================================\n")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host=settings.HOST,
+        port=settings.BACKEND_PORT,
+        reload=settings.DEBUG,
+        workers=1 if settings.DEBUG else 2,
+        log_level=settings.LOG_LEVEL.lower(),
+    )
