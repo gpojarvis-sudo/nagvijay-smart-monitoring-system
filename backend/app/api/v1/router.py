@@ -38,17 +38,6 @@ api_router.include_router(daily_reports.router, prefix="/daily-reports", tags=["
 api_router.include_router(sync_errors.router, prefix="/sync-errors", tags=["Sync Errors"])
 api_router.include_router(ai_insights.router, prefix="/ai-insights", tags=["AI Insights"])
 api_router.include_router(ai_monitoring.router, tags=["AI Monitoring"])
-api_router.include_router(pipeline.router, tags=["Pipeline"])
-print("PIPELINE ROUTER REGISTERED")
+api_router.include_router(pipeline.router, prefix="/pipeline", tags=["Pipeline"])
 
 # DIAGNOSTIC: Print pipeline routes after registration
-print("🔍 PIPELINE ROUTES:", [route.path for route in pipeline.router.routes])
-try:
-    from app.api.v1 import pipeline
-print("PIPELINE MODULE IMPORTED")
-    print("✅ PIPELINE IMPORTED")
-    api_router.include_router(pipeline.router, tags=["Pipeline"])
-print("PIPELINE ROUTER REGISTERED")
-    print("✅ PIPELINE ROUTER INCLUDED")
-except Exception as e:
-    print(f"❌ PIPELINE ERROR: {e}")
