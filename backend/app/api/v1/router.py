@@ -40,4 +40,3 @@ api_router.include_router(ai_insights.router, prefix="/ai-insights", tags=["AI I
 api_router.include_router(ai_monitoring.router, tags=["AI Monitoring"])
 api_router.include_router(pipeline.router, prefix="/pipeline", tags=["Pipeline"])
 
-# DIAGNOSTIC: Print pipeline routes after registration
