@@ -187,3 +187,13 @@ if __name__ == "__main__":
         workers=1 if settings.DEBUG else 2,
         log_level=settings.LOG_LEVEL.lower(),
     )
+
+# DIAGNOSTIC: Print all registered routes
+from fastapi.routing import APIRoute
+print("\n==================================")
+print("REGISTERED ROUTES")
+print("==================================")
+for route in app.routes:
+    if isinstance(route, APIRoute):
+        print(f"{' '.join(route.methods):<10} {route.path}")
+print("==================================\n")

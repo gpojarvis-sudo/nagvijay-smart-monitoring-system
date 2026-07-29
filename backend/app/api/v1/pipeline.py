@@ -15,3 +15,4 @@ async def trigger_eod_pipeline(
     pipeline = EndOfDayPipeline(db)
     result = await pipeline.run()
     return {"success": True, "data": result}
+print("✅ PIPELINE ROUTER LOADED")
