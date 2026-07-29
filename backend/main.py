@@ -1,3 +1,4 @@
+print("🚀 MAIN.PY STARTING")
 """
 NagVijay Smart Monitoring System (NSMS) - Main Application Entry
 Enterprise Monitoring Platform for India Post - Nagpur City Division

@@ -42,3 +42,10 @@ api_router.include_router(pipeline.router, tags=["Pipeline"])
 
 # DIAGNOSTIC: Print pipeline routes after registration
 print("🔍 PIPELINE ROUTES:", [route.path for route in pipeline.router.routes])
+try:
+    from app.api.v1 import pipeline
+    print("✅ PIPELINE IMPORTED")
+    api_router.include_router(pipeline.router, tags=["Pipeline"])
+    print("✅ PIPELINE ROUTER INCLUDED")
+except Exception as e:
+    print(f"❌ PIPELINE ERROR: {e}")
