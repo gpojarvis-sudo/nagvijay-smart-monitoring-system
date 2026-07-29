@@ -282,25 +282,28 @@ class AIMonitoringEngine:
         # Strip extra whitespace
         return cleaned.strip()
 
-async def _generate_ai_brief(self, summary: Dict) -> str:
+    async def _generate_ai_brief(self, summary: Dict) -> str:
         """Generate a natural language brief using Cloudflare DeepSeek."""
-        # Prepare a concise prompt
         high_risk = summary.get('offices_requiring_attention', [])
-        high_risk_names = [m['office_name'] for m in high_risk]
+        high_risk_names = [m['office_name'] for m in high_risk][:5]
         top_performers = summary.get('top_performers', [])
         top_names = [m['office_name'] for m in top_performers[:3]]
+        recommendations = summary.get('recommendations', [])
 
         prompt = f"""
 You are the NagVijay AI Operations Officer for India Post, Nagpur City Division.
-Based on the following real data, generate a concise morning brief for senior officers.
+Based on the following real data, generate a concise morning brief for senior officers (3-4 sentences).
 
-- Total Offices: {summary['total_offices']}
-- Offices requiring immediate attention: {', '.join(high_risk_names) if high_risk_names else 'None'}
-- Top performing offices: {', '.join(top_names) if top_names else 'None'}
-- Key recommendations: {', '.join(summary.get('recommendations', []))}
+Total Offices: {summary['total_offices']}
+Offices needing immediate attention: {', '.join(high_risk_names) if high_risk_names else 'None'}
+Top performing offices: {', '.join(top_names) if top_names else 'None'}
+Key recommendations: {', '.join(recommendations) if recommendations else 'None'}
 
-Provide a brief summary (3-4 sentences) that highlights the overall health, critical issues, and recommended actions.
-Keep it professional and actionable.
+Provide a professional summary highlighting overall health, critical issues, and recommended actions.
 """
-        response = await self.cloudflare.generate_response(message=prompt)
-        return self._clean_ai_response(response)
+        try:
+            response = await self.cloudflare.generate_response(message=prompt)
+            return self._clean_ai_response(response)
+        except Exception as e:
+            logger.error("ai_brief_generation_failed", error=str(e))
+            return "AI brief generation failed. Please check Cloudflare configuration."
