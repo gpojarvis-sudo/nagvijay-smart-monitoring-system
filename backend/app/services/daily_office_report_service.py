@@ -49,12 +49,10 @@ class DailyOfficeReportService:
         else:
             report_date = report_date_str
 
-        stmt = select(DailyOfficeReport).where(
-            DailyOfficeReport.office_id == office.id,
-            DailyOfficeReport.report_date == report_date
+        report = await self.repo.get_by_office_and_date(
+            office.id,
+            report_date,
         )
-        result = await self.db.execute(stmt)
-        report = result.scalar_one_or_none()
 
         if report is None:
             report = DailyOfficeReport(
@@ -99,8 +97,7 @@ class DailyOfficeReportService:
             conditions.append(Office.division == division)
         if conditions:
             stmt = stmt.where(and_(*conditions))
-        result = await self.db.execute(stmt)
-        return result.scalars().all()
+        return await self.repo.get_reports(stmt)
 
     async def get_by_id(self, report_id: int) -> DailyOfficeReport:
         report = await self.repo.get_by_id(report_id)

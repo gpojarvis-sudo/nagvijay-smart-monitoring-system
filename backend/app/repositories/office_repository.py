@@ -71,3 +71,10 @@ class OfficeRepository(BaseRepository[Office]):
             "by_status": by_status,
             "by_division": by_division,
         }
+
+    async def get_by_name(self, office_name: str):
+        result = await self.db.execute(
+            select(Office).where(Office.office_name == office_name)
+        )
+        return result.scalars().first()
+
