@@ -5,11 +5,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.daily_office_report import DailyOfficeReport
 from app.models.office import Office
-
-
+from app.repositories.daily_office_report_repository import DailyOfficeReportRepository
 class DailyOfficeReportService:
     def __init__(self, db: AsyncSession):
         self.db = db
+        self.repo = DailyOfficeReportRepository(db)
 
     async def upsert(self, data: dict) -> DailyOfficeReport:
         office_code = data.get("office_code")
@@ -103,9 +103,7 @@ class DailyOfficeReportService:
         return result.scalars().all()
 
     async def get_by_id(self, report_id: int) -> DailyOfficeReport:
-        stmt = select(DailyOfficeReport).where(DailyOfficeReport.id == report_id)
-        result = await self.db.execute(stmt)
-        report = result.scalar_one_or_none()
+        report = await self.repo.get_by_id(report_id)
         if not report:
             raise ValueError(f"Report with id {report_id} not found")
         return report
