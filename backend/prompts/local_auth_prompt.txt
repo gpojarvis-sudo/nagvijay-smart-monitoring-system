@@ -1,0 +1,40 @@
+You are editing an existing FastAPI project.
+
+DO NOT rewrite the project.
+
+Modify only the existing files.
+
+Requirements:
+
+1. Add Email/Password authentication.
+
+2. Keep Google OAuth fully working.
+
+3. Add RegisterRequest and LoginRequest to app/schemas/auth.py.
+
+4. Add register() and login() methods to AuthService.
+
+5. Reuse existing:
+- hash_password()
+- verify_password()
+- create_tokens_pair()
+- UserRepository
+- ROLE_PERMISSIONS
+
+6. Add POST /auth/register
+
+7. Add POST /auth/login
+
+8. Keep response identical to Google login.
+
+9. Do not change existing endpoints.
+
+10. Return COMPLETE updated files only.
+
+Files:
+
+app/api/v1/auth.py
+
+app/services/auth_service.py
+
+app/schemas/auth.py

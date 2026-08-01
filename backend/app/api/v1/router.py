@@ -1,42 +1,59 @@
 """
-Main API Router - Aggregates all v1 routes
+Main API Router - Phase 1 MVP
 """
 from __future__ import annotations
 
 from fastapi import APIRouter
 
-from app.api.v1 import auth, users, offices, employees, targets, analytics, reports, ai, notifications, integrations, health, settings, daily_reports, sync_errors, ai_insights, ai_monitoring, pipeline
+from app.api.v1 import (
+    auth,
+    health,
+    offices,
+    daily_reports,
+    reports,
+    integrations,
+)
 
 api_router = APIRouter()
 
-# Health - no auth
-api_router.include_router(health.router, prefix="/health", tags=["Health"])
+# Health
+api_router.include_router(
+    health.router,
+    prefix="/health",
+    tags=["Health"],
+)
 
-# Auth
-api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+# Authentication
+api_router.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Authentication"],
+)
 
-# Core resources
-api_router.include_router(users.router, prefix="/users", tags=["Users"])
-api_router.include_router(offices.router, prefix="/offices", tags=["Offices"])
-api_router.include_router(employees.router, prefix="/employees", tags=["Employees"])
-api_router.include_router(targets.router, prefix="/targets", tags=["Targets & Schemes"])
+# Offices
+api_router.include_router(
+    offices.router,
+    prefix="/offices",
+    tags=["Offices"],
+)
 
-# Analytics & Reports
-api_router.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
-api_router.include_router(reports.router, prefix="/reports", tags=["Reports"])
+# Daily Reports
+api_router.include_router(
+    daily_reports.router,
+    prefix="/daily-reports",
+    tags=["Daily Reports"],
+)
 
-# AI & Notifications
-api_router.include_router(ai.router, prefix="/ai", tags=["AI Assistant"])
-api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
+# Reports
+api_router.include_router(
+    reports.router,
+    prefix="/reports",
+    tags=["Reports"],
+)
 
-# Integrations
-api_router.include_router(integrations.router, prefix="/integrations", tags=["Integrations"])
-
-# Settings
-api_router.include_router(settings.router, prefix="/settings", tags=["Settings"])
-api_router.include_router(daily_reports.router, prefix="/daily-reports", tags=["Daily Reports"])
-api_router.include_router(sync_errors.router, prefix="/sync-errors", tags=["Sync Errors"])
-api_router.include_router(ai_insights.router, prefix="/ai-insights", tags=["AI Insights"])
-api_router.include_router(ai_monitoring.router, tags=["AI Monitoring"])
-api_router.include_router(pipeline.router, prefix="/pipeline", tags=["Pipeline"])
-
+# Google Forms / Sheets Integrations
+api_router.include_router(
+    integrations.router,
+    prefix="/integrations",
+    tags=["Integrations"],
+)

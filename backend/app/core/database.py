@@ -63,7 +63,6 @@ async def init_db() -> None:
         async with engine.begin() as conn:
             # Import models to ensure they are registered
             from app.models import user, office, employee, target, audit, notification  # noqa
-            await conn.run_sync(Base.metadata.create_all)
         logger.info("database_tables_created")
     except Exception as e:
         logger.warning("init_db_skipped_or_failed", error=str(e), reason="Will use existing tables or Supabase directly")
