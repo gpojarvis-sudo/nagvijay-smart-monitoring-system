@@ -5,7 +5,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -53,7 +53,7 @@ async def get_monthly_report(
     return {"success": True, "data": report}
 
 
-@router.get("/export", response_model=dict, summary="Export Report")
+@router.get("/export", summary="Export Report")
 async def export_report(
     report_type: str = Query(..., pattern="^(DAILY|MONTHLY|OFFICE_WISE|SCHEME_WISE)$"),
     format: str = Query(default="JSON", pattern="^(JSON|PDF|EXCEL|CSV)$"),
@@ -64,10 +64,33 @@ async def export_report(
 ):
     filters = AnalyticsFilter(financial_year=financial_year, division=division)
     request = ReportRequest(report_type=report_type, filters=filters, format=format)
-    
+
     service = ReportService(db)
     report = await service.generate_report(request)
-    
+
+    filename_base = f"{report_type.lower()}_report"
+
+    if format == "EXCEL":
+        return Response(
+            content=report,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={"Content-Disposition": f'attachment; filename="{filename_base}.xlsx"'},
+        )
+
+    if format == "PDF":
+        return Response(
+            content=report,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="{filename_base}.pdf"'},
+        )
+
+    if format == "CSV":
+        return Response(
+            content=report,
+            media_type="text/csv",
+            headers={"Content-Disposition": f'attachment; filename="{filename_base}.csv"'},
+        )
+
     return {
         "success": True,
         "data": report,

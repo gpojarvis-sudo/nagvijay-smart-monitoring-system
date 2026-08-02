@@ -48,6 +48,7 @@ async def sync_google_sheets():
         from app.core.database import AsyncSessionLocal
         from app.integrations.google_sheets import get_sheets_client
         from app.services.form_import_service import FormImportService
+        from app.services.daily_office_report_sync_service import DailyOfficeReportSyncService
 
         sheets_client = get_sheets_client()
 
@@ -79,12 +80,21 @@ async def sync_google_sheets():
                         error=str(exc),
                     )
 
+        # Export pending Daily Monitoring reports to Google Sheets
+        export_result = {"total": 0, "synced": 0, "failed": 0}
+
+        async with AsyncSessionLocal() as export_db:
+            export_service = DailyOfficeReportSyncService(export_db)
+            export_result = await export_service.sync_pending_reports()
+
         logger.info(
             "job_completed",
             job="sync_google_sheets",
             processed=processed,
             imported=imported,
             failed=failed,
+            exported=export_result["synced"],
+            export_failed=export_result["failed"],
         )
 
     except Exception as e:

@@ -15,6 +15,7 @@ import AIChatPage from './pages/AIChatPage'
 import SettingsPage from './pages/SettingsPage'
 import NotificationsPage from './pages/NotificationsPage'
 import NotFoundPage from './pages/NotFoundPage'
+import DailyMonitoringPage from "./pages/DailyMonitoringPage"
 
 import { useAuthStore } from './services/authStore'
 
@@ -47,6 +48,7 @@ function App() {
         <Route path="/targets/:tab" element={<TargetsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/daily-monitoring" element={<DailyMonitoringPage />} />
         <Route path="/ai-chat" element={<AIChatPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

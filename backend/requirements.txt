@@ -67,3 +67,6 @@ pytest-asyncio==0.23.7
 prometheus-client==0.20.0
 sentry-sdk[fastapi]==1.45.1
 psycopg2-binary==2.9.9
+
+# PDF Generation
+reportlab==4.2.2

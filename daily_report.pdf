@@ -1,0 +1,1 @@
+{"success":false,"error":{"code":"VALIDATION_ERROR","message":"Validation failed","details":{"errors":[{"loc":["path","report_id"],"msg":"Input should be a valid integer, unable to parse string as an integer","type":"int_parsing"}]}},"timestamp":1785233342.6147175,"path":"/api/v1/daily-reports/export-pdf"}

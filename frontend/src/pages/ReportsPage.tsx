@@ -5,9 +5,12 @@ import api from '@/services/api'
 export default function ReportsPage() {
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<any>(null)
+  const [exporting, setExporting] = useState<string | null>(null)
+  const [reportType, setReportType] = useState<string>('DAILY')
 
   const generate = async (type: string) => {
     setLoading(true)
+    setReportType(type)
     try {
       const res = await api.post('/reports/generate', {
         report_type: type,
@@ -19,6 +22,34 @@ export default function ReportsPage() {
       setReport({ error: e.message, sample: 'DPR sample - configure backend' })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const exportFile = async (format: 'PDF' | 'EXCEL' | 'CSV') => {
+    setExporting(format)
+    try {
+      const res = await api.get('/reports/export', {
+        params: {
+          report_type: reportType,
+          format,
+          financial_year: '2024-25',
+          division: 'Nagpur City',
+        },
+        responseType: 'blob',
+      })
+      const extension = format === 'EXCEL' ? 'xlsx' : format.toLowerCase()
+      const blobUrl = window.URL.createObjectURL(new Blob([res.data]))
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `${reportType.toLowerCase()}_report.${extension}`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(blobUrl)
+    } catch (e: any) {
+      alert('Export failed. Please try again.')
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -46,7 +77,29 @@ export default function ReportsPage() {
         <div className="bg-white border rounded-xl p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="font-semibold">Generated Report</h3>
-            <button className="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-2"><Download size={14} /> Export PDF</button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => exportFile('PDF')}
+                disabled={exporting !== null}
+                className="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <Download size={14} /> {exporting === 'PDF' ? 'Exporting...' : 'Export PDF'}
+              </button>
+              <button
+                onClick={() => exportFile('EXCEL')}
+                disabled={exporting !== null}
+                className="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <Download size={14} /> {exporting === 'EXCEL' ? 'Exporting...' : 'Export Excel'}
+              </button>
+              <button
+                onClick={() => exportFile('CSV')}
+                disabled={exporting !== null}
+                className="px-3 py-1.5 border rounded-lg text-sm flex items-center gap-2 disabled:opacity-50"
+              >
+                <Download size={14} /> {exporting === 'CSV' ? 'Exporting...' : 'Export CSV'}
+              </button>
+            </div>
           </div>
           <pre className="bg-gray-50 p-4 rounded-lg text-xs overflow-auto max-h-[400px]">{JSON.stringify(report, null, 2)}</pre>
         </div>

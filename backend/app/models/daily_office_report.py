@@ -3,6 +3,7 @@ from sqlalchemy import (
     Integer,
     String,
     Date,
+    DateTime,
     Numeric,
     ForeignKey,
     UniqueConstraint,
@@ -52,5 +53,13 @@ class DailyOfficeReport(Base):
     # Aadhaar
     aadhaar_transactions = Column(Integer, default=0, nullable=False)
     aadhaar_amount = Column(Numeric(18, 2), default=0, nullable=False)
+
+
+    # Background Sync
+    sync_status = Column(String(20), default="PENDING", nullable=False, index=True)
+    retry_count = Column(Integer, default=0, nullable=False)
+    synced_at = Column(DateTime(timezone=True), nullable=True)
+    last_sync_error = Column(String(1000), nullable=True)
+    sheet_row_number = Column(Integer, nullable=True)
 
     office = relationship("Office", backref="daily_reports")

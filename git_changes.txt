@@ -1,0 +1,25 @@
+ backend/app/api/v1/daily_reports.py | 15 ++++++++++++++-
+ frontend/src/App.tsx                |  2 ++
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   backend/app/api/v1/daily_reports.py
+	modified:   frontend/src/App.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	backend/app/api/v1/daily_reports.py.bak
+	backend/app/api/v1/integrations.py.before_cleanup
+	backend/generate_daily_report_post.py
+	daily_report.pdf
+	frontend/generate_daily_monitoring.py
+	frontend/package-lock.json
+	frontend/src/pages/DailyMonitoringPage.tsx
+	git_changes.txt
+	project_files.txt
+	project_source_files.txt
+	project_tree.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")

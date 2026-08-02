@@ -1,0 +1,30 @@
+frontend/src/App.tsx:import { Routes, Route, Navigate } from 'react-router-dom'
+frontend/src/App.tsx:import ProtectedRoute from './components/ProtectedRoute'
+frontend/src/App.tsx:    <Routes>
+frontend/src/App.tsx:      <Route element={<AuthLayout />}>
+frontend/src/App.tsx:        <Route path="/login" element={<LoginPage />} />
+frontend/src/App.tsx:      </Route>
+frontend/src/App.tsx:      <Route element={
+frontend/src/App.tsx:        <ProtectedRoute>
+frontend/src/App.tsx:        </ProtectedRoute>
+frontend/src/App.tsx:        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+frontend/src/App.tsx:        <Route path="/dashboard" element={<DashboardPage />} />
+frontend/src/App.tsx:        <Route path="/offices" element={<OfficeMasterPage />} />
+frontend/src/App.tsx:        <Route path="/offices/:id" element={<OfficeMasterPage />} />
+frontend/src/App.tsx:        <Route path="/employees" element={<EmployeeMasterPage />} />
+frontend/src/App.tsx:        <Route path="/targets" element={<TargetsPage />} />
+frontend/src/App.tsx:        <Route path="/targets/:tab" element={<TargetsPage />} />
+frontend/src/App.tsx:        <Route path="/analytics" element={<AnalyticsPage />} />
+frontend/src/App.tsx:        <Route path="/reports" element={<ReportsPage />} />
+frontend/src/App.tsx:        <Route path="/daily-monitoring" element={<DailyMonitoringPage />} />
+frontend/src/App.tsx:        <Route path="/ai-chat" element={<AIChatPage />} />
+frontend/src/App.tsx:        <Route path="/notifications" element={<NotificationsPage />} />
+frontend/src/App.tsx:        <Route path="/settings" element={<SettingsPage />} />
+frontend/src/App.tsx:      </Route>
+frontend/src/App.tsx:      <Route path="/404" element={<NotFoundPage />} />
+frontend/src/App.tsx:      <Route path="*" element={<Navigate to="/404" replace />} />
+frontend/src/App.tsx:    </Routes>
+frontend/src/components/ProtectedRoute.tsx:export default function ProtectedRoute({ children, requiredRole, requiredPermission }: Props) {
+frontend/src/main.tsx:import { BrowserRouter } from 'react-router-dom'
+frontend/src/main.tsx:      <BrowserRouter>
+frontend/src/main.tsx:      </BrowserRouter>

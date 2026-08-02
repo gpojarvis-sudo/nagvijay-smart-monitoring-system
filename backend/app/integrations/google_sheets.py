@@ -87,6 +87,63 @@ class GoogleSheetsIntegration:
             logger.error("sheet_write_failed", error=str(e))
             raise
     
+    async def append_row(self, spreadsheet_id: str, range_name: str, values: List[Any]) -> Dict:
+        """Append a single new row to the sheet WITHOUT overwriting existing rows."""
+
+        if not self.is_configured():
+            raise ValueError("Google Sheets not configured")
+
+        try:
+            body = {"values": [values]}
+            result = self.service.spreadsheets().values().append(
+                spreadsheetId=spreadsheet_id,
+                range=range_name,
+                valueInputOption="USER_ENTERED",
+                insertDataOption="INSERT_ROWS",
+                body=body,
+            ).execute()
+
+            logger.info(
+                "sheet_row_appended",
+                spreadsheet_id=spreadsheet_id,
+                updates=result.get("updates", {}),
+            )
+            return result
+
+        except Exception as e:
+            logger.error("sheet_append_failed", error=str(e), spreadsheet_id=spreadsheet_id)
+            raise RuntimeError(f"Google Sheets append error: {type(e).__name__}: {e}")
+
+
+    async def append_rows(self, spreadsheet_id: str, range_name: str, values: List[List[Any]]) -> Dict:
+        """Append multiple rows in a single Google Sheets API request."""
+
+        if not self.is_configured():
+            raise ValueError("Google Sheets not configured")
+
+        try:
+            body = {"values": values}
+            result = self.service.spreadsheets().values().append(
+                spreadsheetId=spreadsheet_id,
+                range=range_name,
+                valueInputOption="USER_ENTERED",
+                insertDataOption="INSERT_ROWS",
+                body=body,
+            ).execute()
+
+            logger.info(
+                "sheet_rows_appended",
+                spreadsheet_id=spreadsheet_id,
+                rows=len(values),
+            )
+
+            return result
+
+        except Exception as e:
+            logger.error("sheet_append_rows_failed", error=str(e), spreadsheet_id=spreadsheet_id)
+            raise RuntimeError(f"Google Sheets append error: {type(e).__name__}: {e}")
+
+
     async def parse_office_import_sheet(self, spreadsheet_id: str) -> List[Dict[str, Any]]:
         """Parse office master import sheet"""
         

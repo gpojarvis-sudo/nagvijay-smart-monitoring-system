@@ -60,6 +60,11 @@ class DailyOfficeReportService:
                 office_code=office.office_code,
                 office_name=office.office_name,
                 report_date=report_date,
+                sync_status="PENDING",
+                retry_count=0,
+                synced_at=None,
+                last_sync_error=None,
+                sheet_row_number=None,
             )
             self.db.add(report)
         else:
