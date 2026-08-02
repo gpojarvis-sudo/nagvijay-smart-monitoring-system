@@ -64,20 +64,6 @@ export default function DashboardPage() {
     refetchInterval: 60000,
   })
 
-
-  // Daily reports
-  const { data: reports } = useQuery({
-    queryKey: ["dailyReports", selectedDate],
-    queryFn: async () => {
-      const res = await api.get("/daily-reports", {
-        params: { report_date: selectedDate }
-      })
-      return res.data
-    },
-    retry: 1,
-    refetchInterval: 60000,
-  })
-
   // Duplicate errors (Feature 1)
   const { data: syncErrors, isLoading: syncErrorsLoading } = useQuery({
     queryKey: ['syncErrors'],
@@ -131,16 +117,11 @@ export default function DashboardPage() {
     report_date: selectedDate,
   }
 
-  const reportingCount = reports?.length || 0;
-  const nonReportingCount = nonReporting?.non_reporting_offices?.length || 0;
-  const totalOffices = officeStats?.total || 66;
-
-
   const stats = [
-    { label: 'Total Offices', value: totalOffices, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
-    { label: 'Reporting Offices', value: reportingCount, icon: Users, color: 'bg-green-500', change: 'Submitted Today' },
+    { label: 'Total Offices', value: kpis.total_offices || 0, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
+    { label: 'Total Employees', value: kpis.total_employees || 0, icon: Users, color: 'bg-green-500', change: '+12 new' },
     { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
-    { label: 'Non Reporting Offices', value: nonReportingCount, icon: AlertTriangle, color: 'bg-orange-500', change: 'Pending Today' },
+    { label: 'Daily Revenue (₹)', value: `₹${(daily.total_revenue || 0).toLocaleString()}`, icon: DollarSign, color: 'bg-orange-500', change: `Today's total` },
   ]
 
   const schemeData = dashboardData?.scheme_wise || []
