@@ -26,7 +26,7 @@ class ExcelExportService:
                 datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
                 r.office_name,
                 str(report_date),
-                "",
+                f"{r.office_name}{report_date}",
                 r.sb_opened,
                 r.sb_closed,
                 r.net_accounts,
