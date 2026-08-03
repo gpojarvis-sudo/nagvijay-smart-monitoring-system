@@ -16,12 +16,13 @@ class ExcelExportService:
 
         wb = load_workbook(TEMPLATE)
 
-# Force Excel/WPS to recalculate formulas
-wb.calculation.calcMode = "auto"
-wb.calculation.fullCalcOnLoad = True
-wb.calculation.forceFullCalc = True
+        # Force Excel/WPS to recalculate formulas
+        wb.calculation.calcMode = "auto"
+        wb.calculation.fullCalcOnLoad = True
+        wb.calculation.forceFullCalc = True
 
         response_sheet = wb["Form Responses 1"]
+        office_sheet = wb["Office wise"]
 
         if response_sheet.max_row > 1:
             response_sheet.delete_rows(2, response_sheet.max_row - 1)
@@ -54,6 +55,25 @@ wb.calculation.forceFullCalc = True
                 "",
                 "",
             ])
+
+            for row in range(3, office_sheet.max_row + 1):
+                if office_sheet[f"B{row}"].value == r.office_name:
+                    office_sheet[f"C{row}"] = str(report_date)
+                    office_sheet[f"D{row}"] = f"{r.office_name}{report_date}"
+                    office_sheet[f"E{row}"] = r.sb_opened
+                    office_sheet[f"F{row}"] = r.sb_closed
+                    office_sheet[f"G{row}"] = r.net_accounts
+                    office_sheet[f"H{row}"] = r.pli_policies
+                    office_sheet[f"I{row}"] = float(r.sum_assured)
+                    office_sheet[f"J{row}"] = float(r.premium)
+                    office_sheet[f"K{row}"] = r.speed_post_document
+                    office_sheet[f"L{row}"] = r.speed_post_parcel
+                    office_sheet[f"M{row}"] = r.business_post
+                    office_sheet[f"N{row}"] = r.international_letter
+                    office_sheet[f"O{row}"] = r.logistics
+                    office_sheet[f"P{row}"] = r.aadhaar_transactions
+                    office_sheet[f"Q{row}"] = float(r.aadhaar_amount)
+                    break
 
         output = BytesIO()
         wb.save(output)
