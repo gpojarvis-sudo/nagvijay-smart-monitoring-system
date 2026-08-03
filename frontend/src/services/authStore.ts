@@ -55,6 +55,8 @@ export const useAuthStore = create<AuthState>()(
           })
 
           return user
+
+          return user
         } catch (error) {
           set({ isLoading: false })
           throw error
@@ -82,6 +84,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           })
+
+          return user
 
           return user
         } catch (error) {

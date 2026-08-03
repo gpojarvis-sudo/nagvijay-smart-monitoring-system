@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError('')
 
     try {
-      const user = await loginWithPassword(username, password)
+      const user = await loginWithPassword(username.trim().toUpperCase(), password)
 
       if (user.role === 'OFFICE_ADMIN') {
         navigate('/daily-monitoring', { replace: true })
@@ -68,7 +68,7 @@ export default function LoginPage() {
               className="w-full border rounded-lg p-3"
               type="text"
               value={username}
-              onChange={(e)=>setEmployeeId(e.target.value)}
+              onChange={(e)=>setEmployeeId(e.target.value.toUpperCase())}
               required
             />
           </div>
