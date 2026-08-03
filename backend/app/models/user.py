@@ -24,6 +24,14 @@ class User(Base):
     # Auth
     google_id: Mapped[Optional[str]] = mapped_column(String(255), unique=True, nullable=True, index=True)
     hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)  # For fallback
+
+    username: Mapped[Optional[str]] = mapped_column(
+        String(20),
+        unique=True,
+        index=True,
+        nullable=True
+    )
+
     
     # RBAC
     role: Mapped[UserRole] = mapped_column(SAEnum(UserRole), default=UserRole.EMPLOYEE, nullable=False)

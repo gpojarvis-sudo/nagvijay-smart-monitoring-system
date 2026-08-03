@@ -23,7 +23,7 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    employee_id: str
+    username: str
     password: str
 
 

@@ -27,6 +27,14 @@ class UserRepository(BaseRepository[User]):
         )
         return result.scalars().first()
     
+
+
+    async def get_by_username(self, username: str) -> Optional[User]:
+        result = await self.db.execute(
+            select(User).where(User.username == username)
+        )
+        return result.scalars().first()
+
     async def get_by_google_id(self, google_id: str) -> Optional[User]:
         result = await self.db.execute(select(User).where(User.google_id == google_id))
         return result.scalars().first()

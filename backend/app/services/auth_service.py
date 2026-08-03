@@ -110,7 +110,7 @@ class AuthService:
 
     async def login(self, data: LoginRequest) -> Dict[str, Any]:
         """Login with email and password"""
-        user = await self.user_repo.get_by_employee_id(data.employee_id)
+        user = await self.user_repo.get_by_username(data.username)
 
         if not user:
             raise UnauthorizedException("Invalid Employee ID or password")
