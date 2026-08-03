@@ -135,12 +135,47 @@ export default function DashboardPage() {
   const nonReportingCount = nonReporting?.non_reporting_offices?.length || 0;
   const totalOffices = officeStats?.total || 66;
 
+  const reportingPercentage =
+    totalOffices > 0
+      ? ((reportingCount / totalOffices) * 100).toFixed(1)
+      : "0";
+
+  const pendingPercentage =
+    totalOffices > 0
+      ? ((nonReportingCount / totalOffices) * 100).toFixed(1)
+      : "0";
+
+
 
   const stats = [
-    { label: 'Total Offices', value: totalOffices, icon: Building2, color: 'bg-blue-500', change: 'Across Nagpur City' },
-    { label: 'Reporting Offices', value: reportingCount, icon: Users, color: 'bg-green-500', change: 'Submitted Today' },
-    { label: 'Daily SB Opened', value: daily.total_sb_opened || 0, icon: FileText, color: 'bg-purple-500', change: `Closed: ${daily.total_sb_closed || 0}` },
-    { label: 'Non Reporting Offices', value: nonReportingCount, icon: AlertTriangle, color: 'bg-orange-500', change: 'Pending Today' },
+    {
+      label: 'Total Offices',
+      value: totalOffices,
+      icon: Building2,
+      color: 'bg-blue-500',
+      change: 'Nagpur City Division'
+    },
+    {
+      label: 'Reporting Offices',
+      value: reportingCount,
+      icon: Users,
+      color: 'bg-green-500',
+      change: `${reportingPercentage}% Submitted`
+    },
+    {
+      label: 'Daily SB Opened',
+      value: daily.total_sb_opened || 0,
+      icon: FileText,
+      color: 'bg-purple-500',
+      change: `Closed: ${daily.total_sb_closed || 0}`
+    },
+    {
+      label: 'Pending Offices',
+      value: nonReportingCount,
+      icon: AlertTriangle,
+      color: 'bg-orange-500',
+      change: `${pendingPercentage}% Pending`
+    },
   ]
 
   const schemeData = dashboardData?.scheme_wise || []
