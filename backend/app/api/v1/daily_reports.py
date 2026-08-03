@@ -98,7 +98,7 @@ async def get_daily_summary(
 @router.get("/export", summary="Export Daily Report")
 async def export_daily_report(
     report_date: date = Query(..., description="Date in YYYY-MM-DD"),
-    format: str = Query(default="csv", regex="^(csv|json)$"),
+    format: str = Query(default="csv", pattern="^(csv|json|excel)$"),
     office_id: Optional[str] = Query(default=None),
     division: str = Query(default="Nagpur City"),
     db: AsyncSession = Depends(get_db),
