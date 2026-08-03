@@ -5,6 +5,7 @@ import api from "@/services/api";
 export default function ReportsPageV2() {
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
+  const [search, setSearch] = useState("");
 
   const { data: reports = [], isLoading } = useQuery({
     queryKey: ["reports-v2", selectedDate],
@@ -24,6 +25,10 @@ export default function ReportsPageV2() {
 
   const pendingCount = totalOffices - reportingCount;
 
+  const filteredReports = reports.filter((r:any)=>
+    (r.office_name || "").toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
 
     <div className="p-6 space-y-6">
@@ -32,14 +37,24 @@ export default function ReportsPageV2() {
           Daily Monitoring Reports
         </h1>
 
-        <input
-          type="date"
-          value={selectedDate}
-          onChange={(e) => setSelectedDate(e.target.value)}
-          className="border rounded-lg px-3 py-2"
-        />
-      </div>
+        <div className="flex gap-3">
 
+          <input
+            type="text"
+            placeholder="Search office..."
+            value={search}
+            onChange={(e)=>setSearch(e.target.value)}
+            className="border rounded-lg px-3 py-2 w-64"
+          />
+
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="border rounded-lg px-3 py-2"
+          />
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
@@ -76,7 +91,7 @@ export default function ReportsPageV2() {
             </thead>
 
             <tbody>
-              {reports.map((r: any) => (
+              {filteredReports.map((r: any) => (
                 <tr key={`${r.office_id}-${r.report_date}`} className="border-t">
                   <td className="p-3">{r.office_name}</td>
                   <td className="p-3 text-center">{r.net_accounts}</td>
