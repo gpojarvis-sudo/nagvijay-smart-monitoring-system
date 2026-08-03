@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "@/services/api";
+import { useAuthStore } from "@/services/authStore";
 
 const FIELD_GROUPS = [
   {
@@ -48,6 +49,7 @@ function emptyForm(today: string): Record<string, any> {
 }
 
 export default function DailyMonitoringPage() {
+  const { user } = useAuthStore();
   const today = new Date().toISOString().split("T")[0];
 
   const [loadingOffices, setLoadingOffices] = useState(false);
@@ -60,8 +62,32 @@ export default function DailyMonitoringPage() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    loadOffices();
-  }, []);
+    if (user?.role === "OFFICE_ADMIN" && user.office_id) {
+      loadMyOffice();
+    } else {
+      loadOffices();
+    }
+  }, [user]);
+
+  async function loadMyOffice() {
+    try {
+      const res = await api.get(`/offices/${user?.office_id}`);
+      const office = res.data.data;
+
+      setForm(prev => ({
+        ...prev,
+        office_id: office.id,
+        office_name: office.office_name,
+        office_code: office.office_code,
+      }));
+    } catch (e) {
+      console.error(e);
+      setNotice({
+        type: "error",
+        message: "Unable to load your office profile."
+      });
+    }
+  }
 
   useEffect(() => {
     if (form.office_id && form.report_date) {
@@ -274,22 +300,34 @@ export default function DailyMonitoringPage() {
             {errors.report_date && <p className="text-red-600 text-sm mt-1">{errors.report_date}</p>}
           </div>
 
-          <div>
-            <select
-              name="office_id"
-              value={form.office_id}
-              onChange={handleOfficeChange}
-              className={`border rounded-lg p-3 w-full ${errors.office_id ? "border-red-500" : ""}`}
-            >
-              <option value="">{loadingOffices ? "Loading Offices..." : "Select Office"}</option>
-              {offices.map((o) => (
-                <option key={o.id} value={o.id}>
-                  {o.office_name}
-                </option>
-              ))}
-            </select>
-            {errors.office_id && <p className="text-red-600 text-sm mt-1">{errors.office_id}</p>}
-          </div>
+          {user?.role === "OFFICE_ADMIN" ? (
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Office</label>
+              <input
+                type="text"
+                value={form.office_name}
+                readOnly
+                className="border rounded-lg p-3 w-full bg-gray-100"
+              />
+            </div>
+          ) : (
+            <div>
+              <select
+                name="office_id"
+                value={form.office_id}
+                onChange={handleOfficeChange}
+                className={`border rounded-lg p-3 w-full ${errors.office_id ? "border-red-500" : ""}`}
+              >
+                <option value="">{loadingOffices ? "Loading Offices..." : "Select Office"}</option>
+                {offices.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.office_name}
+                  </option>
+                ))}
+              </select>
+              {errors.office_id && <p className="text-red-600 text-sm mt-1">{errors.office_id}</p>}
+            </div>
+          )}
         </div>
 
         {FIELD_GROUPS.map((group) => (
