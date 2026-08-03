@@ -11,6 +11,7 @@ import EmployeeMasterPage from './pages/EmployeeMasterPage'
 import TargetsPage from './pages/TargetsPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import ReportsPage from './pages/ReportsPage'
+import ReportsPageV2 from './pages/ReportsPageV2'
 import AIChatPage from './pages/AIChatPage'
 import SettingsPage from './pages/SettingsPage'
 import NotificationsPage from './pages/NotificationsPage'
@@ -47,6 +48,7 @@ function App() {
         <Route path="/targets/:tab" element={<TargetsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports-v2" element={<ReportsPageV2 />} />
         <Route path="/daily-monitoring" element={<DailyMonitoringPage />} />
         <Route path="/ai-chat" element={<AIChatPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
