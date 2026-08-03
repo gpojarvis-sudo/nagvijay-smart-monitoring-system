@@ -16,6 +16,11 @@ class ExcelExportService:
 
         wb = load_workbook(TEMPLATE)
 
+# Force Excel/WPS to recalculate formulas
+wb.calculation.calcMode = "auto"
+wb.calculation.fullCalcOnLoad = True
+wb.calculation.forceFullCalc = True
+
         response_sheet = wb["Form Responses 1"]
 
         if response_sheet.max_row > 1:
