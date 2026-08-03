@@ -43,7 +43,6 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/offices" element={<OfficeMasterPage />} />
         <Route path="/offices/:id" element={<OfficeMasterPage />} />
-        <Route path="/employees" element={<EmployeeMasterPage />} />
         <Route path="/targets" element={<TargetsPage />} />
         <Route path="/targets/:tab" element={<TargetsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />

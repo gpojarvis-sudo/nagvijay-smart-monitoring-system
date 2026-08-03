@@ -3,7 +3,6 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, 
   Building2, 
-  Users, 
   Target, 
   BarChart3, 
   FileText, 
@@ -29,7 +28,6 @@ const adminNavigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'Offices', href: '/offices', icon: Building2 },
-  { name: 'Employees', href: '/employees', icon: Users },
   { name: 'Targets', href: '/targets', icon: Target },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Reports', href: '/reports', icon: FileText },

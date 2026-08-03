@@ -69,7 +69,7 @@ export default function DashboardPage() {
   const { data: reports } = useQuery({
     queryKey: ["dailyReports", selectedDate],
     queryFn: async () => {
-      const res = await api.get("/daily-reports", {
+      const res = await api.get("/daily-reports/", {
         params: { report_date: selectedDate }
       })
       return res.data
