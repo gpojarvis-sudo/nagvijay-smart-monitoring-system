@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.dependencies.auth import get_current_active_user
 from app.models.user import User
 from app.services.daily_office_report_service import DailyOfficeReportService
+from app.services.excel_export_service import ExcelExportService
 from app.schemas.daily_report import DailyReportCreate, DailyReportResponse, DailyReportSummary
 from app.integrations.google_sheets import get_sheets_client
 from app.core.config import get_settings
@@ -138,23 +139,18 @@ async def export_daily_report(
         )
     
     elif format == "excel":
-        wb = Workbook()
-        ws = wb.active
-        ws.title = "Daily Report"
-        if reports:
-            headers = list(reports[0].__dict__.keys())
-            headers = [h for h in headers if not h.startswith('_')]
-            ws.append(headers)
-            for r in reports:
-                row = [getattr(r, h) for h in headers]
-                ws.append(row)
-        output = io.BytesIO()
-        wb.save(output)
-        output.seek(0)
+        output = ExcelExportService().generate(
+            reports=reports,
+            report_date=report_date,
+        )
+
         return Response(
             content=output.getvalue(),
             media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={"Content-Disposition": f"attachment; filename=daily_report_{report_date.isoformat()}.xlsx"}
+            headers={
+                "Content-Disposition":
+                f'attachment; filename="Daily_Monitoring_{report_date.isoformat()}.xlsx"'
+            },
         )
 
 @router.get("/non-reporting", summary="Non-Reporting Offices for a Date")
