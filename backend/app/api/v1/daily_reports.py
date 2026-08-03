@@ -139,19 +139,26 @@ async def export_daily_report(
         )
     
     elif format == "excel":
-        output = ExcelExportService().generate(
-            reports=reports,
-            report_date=report_date,
-        )
+        try:
+            output = ExcelExportService().generate(
+                reports=reports,
+                report_date=report_date,
+            )
 
-        return Response(
-            content=output.getvalue(),
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers={
-                "Content-Disposition":
-                f'attachment; filename="Daily_Monitoring_{report_date.isoformat()}.xlsx"'
-            },
-        )
+            return Response(
+                content=output.getvalue(),
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                headers={
+                    "Content-Disposition":
+                    f'attachment; filename="Daily_Monitoring_{report_date.isoformat()}.xlsx"'
+                },
+            )
+        except Exception as e:
+            import traceback
+            return {
+                "error": str(e),
+                "traceback": traceback.format_exc(),
+            }
 
 @router.get("/non-reporting", summary="Non-Reporting Offices for a Date")
 async def get_non_reporting_offices(
