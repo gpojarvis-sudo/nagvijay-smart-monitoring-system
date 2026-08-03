@@ -25,6 +25,13 @@ export default function ReportsPageV2() {
 
   const pendingCount = totalOffices - reportingCount;
 
+  const exportReport = (format:"excel"|"csv")=>{
+    window.open(
+      `/api/v1/daily-reports/export?report_date=${selectedDate}&format=${format}`,
+      "_blank"
+    );
+  };
+
   const filteredReports = reports.filter((r:any)=>
     (r.office_name || "").toLowerCase().includes(search.toLowerCase())
   );
@@ -53,6 +60,22 @@ export default function ReportsPageV2() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="border rounded-lg px-3 py-2"
           />
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => exportReport("excel")}
+            className="bg-green-600 text-white px-4 py-2 rounded-lg"
+          >
+            Excel
+          </button>
+
+          <button
+            onClick={() => exportReport("csv")}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg"
+          >
+            CSV
+          </button>
         </div>
       </div>
 
