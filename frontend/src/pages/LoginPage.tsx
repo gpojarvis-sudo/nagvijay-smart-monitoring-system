@@ -6,7 +6,7 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const { loginWithPassword } = useAuthStore()
 
-  const [employeeId, setEmployeeId] = useState('')
+  const [username, setEmployeeId] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -18,13 +18,18 @@ export default function LoginPage() {
     setError('')
 
     try {
-      await loginWithPassword(employeeId, password)
-      navigate('/dashboard')
+      const user = await loginWithPassword(username, password)
+
+      if (user.role === 'OFFICE_ADMIN') {
+        navigate('/daily-monitoring', { replace: true })
+      } else {
+        navigate('/dashboard', { replace: true })
+      }
     } catch (err: any) {
       setError(
         err?.response?.data?.error?.message ||
         err?.message ||
-        'Invalid Employee ID or Password'
+        'Invalid Username or Password'
       )
     } finally {
       setLoading(false)
@@ -56,13 +61,13 @@ export default function LoginPage() {
 
           <div>
             <label className="block mb-2 font-medium">
-              Employee ID
+              Username
             </label>
 
             <input
               className="w-full border rounded-lg p-3"
               type="text"
-              value={employeeId}
+              value={username}
               onChange={(e)=>setEmployeeId(e.target.value)}
               required
             />

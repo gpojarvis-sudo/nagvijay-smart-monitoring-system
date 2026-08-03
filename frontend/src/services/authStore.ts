@@ -21,7 +21,7 @@ interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   login: (idToken: string) => Promise<void>
-  loginWithPassword: (employeeId: string, password: string) => Promise<void>
+  loginWithPassword: (username: string, password: string) => Promise<any>
   logout: () => void
   checkAuth: () => Promise<void>
   hasPermission: (permission: string) => boolean
@@ -53,18 +53,20 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           })
+
+          return user
         } catch (error) {
           set({ isLoading: false })
           throw error
         }
       },
 
-      loginWithPassword: async (employeeId: string, password: string) => {
+      loginWithPassword: async (username: string, password: string) => {
         set({ isLoading: true })
 
         try {
           const res = await api.post('/auth/login', {
-            employee_id: employeeId,
+            username: username,
             password,
           })
 
@@ -80,6 +82,8 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: true,
             isLoading: false,
           })
+
+          return user
         } catch (error) {
           set({ isLoading: false })
           throw error
