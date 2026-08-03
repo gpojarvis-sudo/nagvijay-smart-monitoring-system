@@ -17,7 +17,15 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/services/authStore'
 
-const adminNavigation = [
+type NavigationItem = {
+  name: string
+  href: string
+  icon: any
+  badge?: string
+}
+
+
+const adminNavigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'Offices', href: '/offices', icon: Building2 },
@@ -30,14 +38,13 @@ const adminNavigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
-const officeNavigation = [
+const officeNavigation: NavigationItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'My Reports', href: '/reports', icon: FileText },
   { name: 'Notifications', href: '/notifications', icon: Bell },
 ]
 
-export default function MainLayout()
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
