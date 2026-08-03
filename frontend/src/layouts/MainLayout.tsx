@@ -17,8 +17,9 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '@/services/authStore'
 
-const navigation = [
+const adminNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'Offices', href: '/offices', icon: Building2 },
   { name: 'Employees', href: '/employees', icon: Users },
   { name: 'Targets', href: '/targets', icon: Target },
@@ -29,9 +30,20 @@ const navigation = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
+const officeNavigation = [
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
+  { name: 'My Reports', href: '/reports', icon: FileText },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
+]
+
+export default function MainLayout()
+
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const { user, logout } = useAuthStore()
+
+  const navigation = user?.role === 'OFFICE_ADMIN' ? officeNavigation : adminNavigation
   const location = useLocation()
   const navigate = useNavigate()
 
