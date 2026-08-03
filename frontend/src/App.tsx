@@ -47,7 +47,7 @@ function App() {
         <Route path="/targets" element={<TargetsPage />} />
         <Route path="/targets/:tab" element={<TargetsPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-        <Route path="/reports" element={<ReportsPage />} />
+        <Route path="/reports" element={<ReportsPageV2 />} />
         <Route path="/reports-v2" element={<ReportsPageV2 />} />
         <Route path="/daily-monitoring" element={<DailyMonitoringPage />} />
         <Route path="/ai-chat" element={<AIChatPage />} />
