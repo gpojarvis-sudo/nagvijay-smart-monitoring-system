@@ -30,6 +30,10 @@ const downloadExcel = async (date: string) => {
 export default function DashboardPage() {
   const today = new Date().toISOString().split('T')[0]
   const [selectedDate, setSelectedDate] = useState(today)
+  const lastUpdated = new Date().toLocaleTimeString('en-IN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 
   // Analytics dashboard
   const { data: dashboardData, isLoading: analyticsLoading } = useQuery({
@@ -194,7 +198,7 @@ export default function DashboardPage() {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring</p>
+          <p className="text-gray-600 mt-1">Nagpur City Division • Real-time monitoring • Last updated: {lastUpdated}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-sm">
