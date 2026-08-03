@@ -6,7 +6,7 @@ from openpyxl import load_workbook
 
 TEMPLATE = (
     Path(__file__).resolve().parent.parent
-    / "Template"
+    / "templates"
     / "Daily_Monitoring_Template.xlsx"
 )
 
