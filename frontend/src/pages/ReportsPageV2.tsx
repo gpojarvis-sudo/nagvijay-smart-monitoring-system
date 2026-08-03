@@ -17,7 +17,15 @@ export default function ReportsPageV2() {
     refetchInterval: 60000,
   });
 
+
+  const reportingCount = reports.length;
+
+  const totalOffices = 66;
+
+  const pendingCount = totalOffices - reportingCount;
+
   return (
+
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">
@@ -32,7 +40,28 @@ export default function ReportsPageV2() {
         />
       </div>
 
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <div className="bg-blue-50 border rounded-xl p-5">
+          <p className="text-sm text-gray-600">Total Offices</p>
+          <h2 className="text-3xl font-bold">66</h2>
+        </div>
+
+        <div className="bg-green-50 border rounded-xl p-5">
+          <p className="text-sm text-gray-600">Reporting Offices</p>
+          <h2 className="text-3xl font-bold text-green-700">{reportingCount}</h2>
+        </div>
+
+        <div className="bg-red-50 border rounded-xl p-5">
+          <p className="text-sm text-gray-600">Pending Offices</p>
+          <h2 className="text-3xl font-bold text-red-700">{pendingCount}</h2>
+        </div>
+
+      </div>
+
       {isLoading ? (
+
         <div>Loading...</div>
       ) : (
         <div className="bg-white border rounded-xl overflow-hidden">
