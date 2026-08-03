@@ -184,6 +184,10 @@ export default function DashboardPage() {
 
   const COLORS = ['#DC2626', '#1E40AF', '#059669', '#D97706', '#7C3AED', '#DB2777']
 
+  const topReportingOffices = (reports || []).slice(0,5);
+  const pendingOffices = nonReporting?.non_reporting_offices || [];
+
+
   return (
     <div className="space-y-6">
       {/* Header with Date Picker */}
@@ -227,7 +231,57 @@ export default function DashboardPage() {
         ))}
       </div>
 
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            Top Reporting Offices
+          </h3>
+
+          {topReportingOffices.length === 0 ? (
+            <p className="text-gray-500">No reports submitted.</p>
+          ) : (
+            <div className="space-y-3">
+              {topReportingOffices.map((o:any)=>(
+                <div key={o.office_id} className="flex justify-between border-b pb-2">
+                  <span>{o.office_name}</span>
+                  <span className="font-semibold text-green-700">
+                    Submitted
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl border shadow-sm p-6">
+          <h3 className="text-lg font-semibold mb-4">
+            Non Reporting Offices
+          </h3>
+
+          {pendingOffices.length === 0 ? (
+            <p className="text-green-600">
+              All offices have reported.
+            </p>
+          ) : (
+            <div className="space-y-3 max-h-72 overflow-auto">
+              {pendingOffices.slice(0,10).map((o:any)=>(
+                <div key={o.office_id} className="flex justify-between border-b pb-2">
+                  <span>{o.office_name}</span>
+                  <span className="text-red-600 font-medium">
+                    Pending
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+      </div>
+
       {/* Charts Row */}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-xl border shadow-sm p-6">
           <div className="flex items-center justify-between mb-6">
