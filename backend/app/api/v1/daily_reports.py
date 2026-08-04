@@ -15,6 +15,7 @@ from app.core.logging import get_logger
 import io
 import csv
 import json
+import time
 
 router = APIRouter(tags=["Daily Reports"])
 logger = get_logger(__name__)
@@ -27,12 +28,17 @@ async def get_daily_reports(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
+    t0 = time.time()
+
     service = DailyOfficeReportService(db)
     reports = await service.get_reports(
         report_date=report_date,
         office_id=office_id,
         division=division,
     )
+
+    print(f"GET REPORTS: {time.time()-t0:.2f}s")
+
     return reports
 
 
@@ -140,10 +146,15 @@ async def export_daily_report(
     
     elif format == "excel":
         try:
+            t1 = time.time()
+
             output = ExcelExportService().generate(
                 reports=reports,
                 report_date=report_date,
             )
+
+            print(f"EXCEL: {time.time()-t1:.2f}s")
+            print(f"TOTAL: {time.time()-t0:.2f}s")
 
             return Response(
                 content=output.getvalue(),
