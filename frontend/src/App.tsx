@@ -27,6 +27,51 @@ function App() {
     checkAuth()
   }, [checkAuth])
 
+
+  // AUTO_IDLE_TIMEOUT_NSMS
+  useEffect(() => {
+    if (!user) return;
+
+    const timeout =
+      user.role === "SUPER_ADMIN"
+        ? 5 * 60 * 1000
+        : 10 * 60 * 1000;
+
+    let timer:any;
+
+    const resetTimer = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        useAuthStore.getState().logout();
+      }, timeout);
+    };
+
+    [
+      "mousemove",
+      "mousedown",
+      "keydown",
+      "scroll",
+      "touchstart",
+      "click"
+    ].forEach(e=>window.addEventListener(e,resetTimer));
+
+    resetTimer();
+
+    return ()=>{
+      clearTimeout(timer);
+      [
+        "mousemove",
+        "mousedown",
+        "keydown",
+        "scroll",
+        "touchstart",
+        "click"
+      ].forEach(e=>window.removeEventListener(e,resetTimer));
+    };
+
+  },[user])
+
+
   return (
     <Routes>
       {/* Public - Auth */}
