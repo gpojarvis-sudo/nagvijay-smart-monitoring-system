@@ -154,7 +154,6 @@ async def export_daily_report(
             )
 
             print(f"EXCEL: {time.time()-t1:.2f}s")
-            print(f"TOTAL: {time.time()-t0:.2f}s")
 
             return Response(
                 content=output.getvalue(),
