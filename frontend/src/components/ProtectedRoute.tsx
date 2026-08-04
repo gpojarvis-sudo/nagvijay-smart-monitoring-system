@@ -16,7 +16,15 @@ export default function ProtectedRoute({ children, requiredRole, requiredPermiss
   }
 
   if (requiredRole && !hasRole(requiredRole)) {
-    return <Navigate to="/dashboard" replace />
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center p-8 bg-white rounded-xl shadow-sm border">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">Only Administrator can access Dashboard.</p>
+          <p className="text-sm text-gray-500 mt-2">Your role: {user?.role}</p>
+        </div>
+      </div>
+    )
   }
 
   if (requiredPermission && !hasPermission(requiredPermission)) {

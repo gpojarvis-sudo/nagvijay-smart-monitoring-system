@@ -41,7 +41,14 @@ function App() {
         </ProtectedRoute>
       }>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute requiredRole="SUPER_ADMIN">
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/offices" element={<OfficeMasterPage />} />
         <Route path="/offices/:id" element={<OfficeMasterPage />} />
         <Route path="/targets" element={<TargetsPage />} />

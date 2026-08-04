@@ -37,7 +37,6 @@ const adminNavigation: NavigationItem[] = [
 ]
 
 const officeNavigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'My Reports', href: '/reports', icon: FileText },
   { name: 'Notifications', href: '/notifications', icon: Bell },
