@@ -27,8 +27,10 @@ export default function ReportsPageV2() {
   const pendingCount = totalOffices - reportingCount;
 
   const exportReport = (format:"excel"|"csv")=>{
+    const base = (import.meta.env.VITE_API_URL || "https://nagvijay-smart-monitoring-system.onrender.com").replace(/\/$/, "");
+    const token = localStorage.getItem("access_token");
     window.open(
-      `/api/v1/daily-reports/export?report_date=${selectedDate}&format=${format}`,
+      `${base}/api/v1/daily-reports/export?report_date=${selectedDate}&format=${format}&token=${encodeURIComponent(token || "")}`,
       "_blank"
     );
   };
