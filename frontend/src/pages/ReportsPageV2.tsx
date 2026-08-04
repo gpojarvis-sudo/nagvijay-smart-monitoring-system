@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import api from "@/services/api";
 
 export default function ReportsPageV2() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIST();
   const [selectedDate, setSelectedDate] = useState(today);
   const [search, setSearch] = useState("");
 

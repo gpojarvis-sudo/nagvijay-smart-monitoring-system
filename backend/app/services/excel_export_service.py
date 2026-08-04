@@ -27,6 +27,11 @@ class ExcelExportService:
         if response_sheet.max_row > 1:
             response_sheet.delete_rows(2, response_sheet.max_row - 1)
 
+        office_rows = {
+            office_sheet[f"B{row}"].value: row
+            for row in range(3, office_sheet.max_row + 1)
+        }
+
         for r in reports:
             response_sheet.append([
                 datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
@@ -56,8 +61,8 @@ class ExcelExportService:
                 "",
             ])
 
-            for row in range(3, office_sheet.max_row + 1):
-                if office_sheet[f"B{row}"].value == r.office_name:
+            row = office_rows.get(r.office_name)
+            if row:
                     office_sheet[f"C{row}"] = str(report_date)
                     office_sheet[f"D{row}"] = f"{r.office_name}{report_date}"
                     office_sheet[f"E{row}"] = r.sb_opened
@@ -73,7 +78,6 @@ class ExcelExportService:
                     office_sheet[f"O{row}"] = r.logistics
                     office_sheet[f"P{row}"] = r.aadhaar_transactions
                     office_sheet[f"Q{row}"] = float(r.aadhaar_amount)
-                    break
 
         output = BytesIO()
         wb.save(output)

@@ -21,7 +21,7 @@ import DailyMonitoringPage from "./pages/DailyMonitoringPage"
 import { useAuthStore } from './services/authStore'
 
 function App() {
-  const { checkAuth } = useAuthStore()
+  const { checkAuth, user } = useAuthStore()
 
   useEffect(() => {
     checkAuth()

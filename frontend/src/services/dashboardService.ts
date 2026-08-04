@@ -1,3 +1,4 @@
+import { todayIST, timeIST } from "@/utils/date"
 import api from './api'
 
 export const dashboardService = {
@@ -10,7 +11,7 @@ export const dashboardService = {
     return res.data.data
   },
   getDailySummary: async (date?: string) => {
-    const params = { report_date: date || new Date().toISOString().split('T')[0] }
+    const params = { report_date: date || todayIST() }
     const res = await api.get('/daily-reports/summary', { params })
     return res.data
   }

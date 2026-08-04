@@ -25,8 +25,7 @@ type NavigationItem = {
 
 
 const adminNavigation: NavigationItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
+    { name: 'Daily Monitoring', href: '/daily-monitoring', icon: FileText },
   { name: 'Offices', href: '/offices', icon: Building2 },
   { name: 'Targets', href: '/targets', icon: Target },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },

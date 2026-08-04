@@ -50,7 +50,7 @@ function emptyForm(today: string): Record<string, any> {
 
 export default function DailyMonitoringPage() {
   const { user } = useAuthStore();
-  const today = new Date().toISOString().split("T")[0];
+  const today = todayIST();
 
   const [loadingOffices, setLoadingOffices] = useState(false);
   const [submitting, setSubmitting] = useState(false);

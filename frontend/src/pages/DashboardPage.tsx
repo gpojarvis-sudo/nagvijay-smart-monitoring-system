@@ -1,3 +1,4 @@
+import { todayIST, timeIST } from "@/utils/date"
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import api from '@/services/api'
@@ -28,12 +29,20 @@ const downloadExcel = async (date: string) => {
 };
 
 export default function DashboardPage() {
-  const today = new Date().toISOString().split('T')[0]
+  const today = todayIST()
   const [selectedDate, setSelectedDate] = useState(today)
-  const lastUpdated = new Date().toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+  const [lastUpdated, setLastUpdated] = useState(timeIST())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLastUpdated(timeIST())
+
+      const d = todayIST()
+      setSelectedDate(prev => prev === d ? prev : d)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [])
 
   // Analytics dashboard
   const { data: dashboardData, isLoading: analyticsLoading } = useQuery({
