@@ -1,0 +1,1 @@
+{"success":false,"error":{"code":"VALIDATION_ERROR","message":"Validation failed","details":{"errors":[{"loc":["query","format"],"msg":"String should match pattern '^(csv|json|excel)$'","type":"string_pattern_mismatch"}]}},"timestamp":1785822950.6083846,"path":"/api/v1/daily-reports/export"}

@@ -121,6 +121,23 @@ export default function MainLayout() {
             <div className="mt-4 px-3">
               <p className="text-[10px] text-gray-400">MVP v1.0.0 • Nagpur City Division</p>
               <p className="text-[10px] text-gray-400">Scalable to National • India Post</p>
+
+              <div className="mt-3 pt-3 border-t border-gray-200 space-y-1 text-[11px]">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Total Offices</span>
+                  <span className="font-semibold text-gray-700">66</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Sub Offices</span>
+                  <span className="font-semibold text-gray-700">64</span>
+                </div>
+
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Head Offices</span>
+                  <span className="font-semibold text-gray-700">2</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -1,0 +1,3 @@
+sb_opened,premium,sync_status,speed_post_document,retry_count,office_name,sb_closed,speed_post_parcel,synced_at,net_accounts,business_post,last_sync_error,office_id,logistics,sheet_row_number,pli_policies,international_letter,office_code,aadhaar_transactions,id,report_date,sum_assured,aadhaar_amount
+1,1.00,PENDING,1,0,Abhyankar Nagar S.O,1,1,,1,1,,fffae751-bf53-48a0-a04d-72ab5b3a5a62,1,,1,1,abhyankar_nagar_so,1,69,2026-08-03,1.00,1.00
+1,9.00,PENDING,2,0,Ayodhya Nagar S.O,2,4,,3,6,,b6350f43-e20d-4242-b531-e7b73ee00336,8,,1,98,ayodhya_nagar_so,8,70,2026-08-03,23.00,80.00
