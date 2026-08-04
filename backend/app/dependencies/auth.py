@@ -32,7 +32,8 @@ async def get_token_payload(
     try:
         payload = decode_token(credentials.credentials)
         return payload
-    except ValueError:
+    except ValueError as e:
+        print("JWT ERROR:", repr(e))
         return None
 
 
