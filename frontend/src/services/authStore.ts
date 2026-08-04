@@ -43,8 +43,8 @@ export const useAuthStore = create<AuthState>()(
           const res = await api.post('/auth/google', { id_token: idToken })
           const { access_token, refresh_token, user } = res.data.data
 
-          localStorage.setItem('access_token', access_token)
-          localStorage.setItem('refresh_token', refresh_token)
+          sessionStorage.setItem('access_token', access_token)
+          sessionStorage.setItem('refresh_token', refresh_token)
 
           set({
             user,
@@ -74,8 +74,8 @@ export const useAuthStore = create<AuthState>()(
 
           const { access_token, refresh_token, user } = res.data.data
 
-          localStorage.setItem('access_token', access_token)
-          localStorage.setItem('refresh_token', refresh_token)
+          sessionStorage.setItem('access_token', access_token)
+          sessionStorage.setItem('refresh_token', refresh_token)
 
           set({
             user,
@@ -95,8 +95,8 @@ export const useAuthStore = create<AuthState>()(
       },
 
       logout: () => {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
+        sessionStorage.removeItem('access_token')
+        sessionStorage.removeItem('refresh_token')
         set({
           user: null,
           accessToken: null,
@@ -107,7 +107,7 @@ export const useAuthStore = create<AuthState>()(
       },
 
       checkAuth: async () => {
-        const token = localStorage.getItem('access_token')
+        const token = sessionStorage.getItem('access_token')
         if (!token) {
           set({ isAuthenticated: false, user: null })
           return
@@ -118,8 +118,8 @@ export const useAuthStore = create<AuthState>()(
           const user = res.data.data
           set({ user, isAuthenticated: true, accessToken: token })
         } catch {
-          localStorage.removeItem('access_token')
-          localStorage.removeItem('refresh_token')
+          sessionStorage.removeItem('access_token')
+          sessionStorage.removeItem('refresh_token')
           set({ isAuthenticated: false, user: null })
         }
       },

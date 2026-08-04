@@ -9,7 +9,7 @@ import { dashboardService } from '@/services/dashboardService'
 
 const downloadExcel = async (date: string) => {
   try {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     const res = await fetch(`/api/v1/daily-reports/export?report_date=${date}&format=excel`, {
       headers: { Authorization: `Bearer ${token}` }
     });

@@ -28,7 +28,7 @@ export default function ReportsPageV2() {
 
   const exportReport = async (format:"excel"|"csv") => {
     try {
-      const token = localStorage.getItem("access_token");
+      const token = sessionStorage.getItem("access_token");
       const base = (import.meta.env.VITE_API_URL || "https://nagvijay-smart-monitoring-system-1.onrender.com").replace(/\/$/, "");
 
       const response = await fetch(

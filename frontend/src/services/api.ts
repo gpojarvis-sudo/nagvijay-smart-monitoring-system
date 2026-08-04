@@ -13,7 +13,7 @@ export const api = axios.create({
 // Request interceptor - add auth token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token')
+    const token = sessionStorage.getItem('access_token')
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -59,10 +59,10 @@ api.interceptors.response.use(
       originalRequest._retry = true
       isRefreshing = true
 
-      const refreshToken = localStorage.getItem('refresh_token')
+      const refreshToken = sessionStorage.getItem('refresh_token')
       if (!refreshToken) {
         isRefreshing = false
-        localStorage.clear()
+        sessionStorage.clear()
         window.location.href = '/login'
         return Promise.reject(error)
       }
@@ -73,8 +73,8 @@ api.interceptors.response.use(
         })
 
         const { access_token, refresh_token: newRefresh } = res.data.data
-        localStorage.setItem('access_token', access_token)
-        localStorage.setItem('refresh_token', newRefresh)
+        sessionStorage.setItem('access_token', access_token)
+        sessionStorage.setItem('refresh_token', newRefresh)
 
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${access_token}`
@@ -84,7 +84,7 @@ api.interceptors.response.use(
         return api(originalRequest)
       } catch (refreshError) {
         processQueue(refreshError, null)
-        localStorage.clear()
+        sessionStorage.clear()
         window.location.href = '/login'
         return Promise.reject(refreshError)
       } finally {
