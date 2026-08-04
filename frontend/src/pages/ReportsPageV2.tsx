@@ -26,13 +26,39 @@ export default function ReportsPageV2() {
 
   const pendingCount = totalOffices - reportingCount;
 
-  const exportReport = (format:"excel"|"csv")=>{
-    const base = (import.meta.env.VITE_API_URL || "https://nagvijay-smart-monitoring-system.onrender.com").replace(/\/$/, "");
-    const token = localStorage.getItem("access_token");
-    window.open(
-      `${base}/api/v1/daily-reports/export?report_date=${selectedDate}&format=${format}&token=${encodeURIComponent(token || "")}`,
-      "_blank"
-    );
+  const exportReport = async (format:"excel"|"csv") => {
+    try {
+      const token = localStorage.getItem("access_token");
+      const base = (import.meta.env.VITE_API_URL || "https://nagvijay-smart-monitoring-system-1.onrender.com").replace(/\/$/, "");
+
+      const response = await fetch(
+        `${base}/api/v1/daily-reports/export?report_date=${selectedDate}&format=${format}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) throw new Error(`Export failed (${response.status})`);
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = format === "excel"
+        ? `Daily_Monitoring_${selectedDate}.xlsx`
+        : `Daily_Monitoring_${selectedDate}.csv`;
+
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      alert("Export failed.");
+    }
   };
 
   const filteredReports = reports.filter((r:any)=>
