@@ -60,7 +60,7 @@ pandas==2.2.2
 pillow==10.4.0
 
 # Testing (for deployment, but needed)
-pytest==8.2.2
+pytest==9.0.3
 pytest-asyncio==0.23.7
 
 # Monitoring
