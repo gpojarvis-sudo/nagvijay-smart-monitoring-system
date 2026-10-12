@@ -1,97 +1,130 @@
-name: NSMS - Build, Test & Deploy
+name: NSMS - Build, Test and Deploy
 
 on:
   push:
-    branches: [main, production]
+    branches:
+      - main
+      - production
+      - office-draft-generator
   pull_request:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
 
 env:
   NODE_VERSION: "20"
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.12"
 
 jobs:
   backend-lint-test:
-    name: Backend Lint & Test
+    name: Backend Lint and Test
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: backend
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ env.PYTHON_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest pytest-asyncio pytest-cov ruff mypy
 
-      - name: Lint with Ruff
-        run: |
-          ruff check app/ --line-length 100 || true
-          ruff format --check app/ || true
+      - name: Check Python formatting
+        run: ruff format --check app/
+        continue-on-error: true
 
-      - name: Type check with mypy
-        run: mypy app/ --ignore-missing-imports || true
+      - name: Check Python lint
+        run: ruff check app/
+        continue-on-error: true
 
-      - name: Run tests
+      - name: Check Python types
+        run: mypy app/ --ignore-missing-imports
+        continue-on-error: true
+
+      - name: Run backend tests
         env:
           DATABASE_URL: sqlite+aiosqlite:///:memory:
           JWT_SECRET_KEY: test-secret-key-for-ci-only-32-char
           SUPABASE_URL: https://test.supabase.co
           SUPABASE_SERVICE_ROLE_KEY: test-key
-        run: pytest ../tests/backend -v --tb=short || pytest -v --tb=short || echo "No tests yet"
+        run: |
+          if [ -d "../tests/backend" ]; then
+            pytest ../tests/backend -v --tb=short
+          elif [ -d "tests" ]; then
+            pytest tests -v --tb=short
+          else
+            echo "No backend test directory found; skipping tests."
+          fi
+        continue-on-error: true
 
   frontend-lint-test:
-    name: Frontend Lint & Test
+    name: Frontend Lint and Build
     runs-on: ubuntu-latest
+
     defaults:
       run:
         working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Set up Node ${{ env.NODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Install frontend dependencies
+        run: npm ci
 
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      - name: Lint
-        run: npm run lint || npx eslint src/ || true
+      - name: Run frontend lint
+        run: npm run lint
+        continue-on-error: true
 
-      - name: Build
+      - name: Build frontend
         run: npm run build
         env:
           VITE_API_URL: https://api.example.com
 
-      - name: Upload build artifacts
+      - name: Upload frontend build
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: frontend/dist/
+          if-no-files-found: error
 
   docker-build:
     name: Docker Build Check
     runs-on: ubuntu-latest
-    needs: [backend-lint-test, frontend-lint-test]
+
+    needs:
+      - backend-lint-test
+      - frontend-lint-test
+
     if: github.event_name == 'push'
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -103,8 +136,6 @@ jobs:
           file: docker/backend.Dockerfile
           push: false
           tags: nsms-backend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
       - name: Build frontend image
         uses: docker/build-push-action@v6
@@ -113,17 +144,21 @@ jobs:
           file: docker/frontend.Dockerfile
           push: false
           tags: nsms-frontend:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
 
   deploy-railway:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    needs: [docker-build]
+
+    needs:
+      - docker-build
+
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
     environment: production
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
@@ -133,27 +168,23 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
           if [ -n "$RAILWAY_TOKEN" ]; then
-            railway up --service backend --detach || echo "Railway deploy skipped - configure RAILWAY_TOKEN"
+            railway up --service backend --detach
           else
-            echo "RAILWAY_TOKEN not set, skipping deploy"
+            echo "RAILWAY_TOKEN is not configured. Deployment skipped."
           fi
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: "0"
