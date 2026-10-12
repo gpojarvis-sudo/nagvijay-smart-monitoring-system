@@ -16,7 +16,8 @@ import AIChatPage from './pages/AIChatPage'
 import SettingsPage from './pages/SettingsPage'
 import NotificationsPage from './pages/NotificationsPage'
 import NotFoundPage from './pages/NotFoundPage'
-import DailyMonitoringPage from "./pages/DailyMonitoringPage"
+import DailyMonitoringPage from './pages/DailyMonitoringPage'
+import OfficeDraftPage from './pages/OfficeDraftPage'
 
 import { useAuthStore } from './services/authStore'
 
@@ -27,65 +28,69 @@ function App() {
     checkAuth()
   }, [checkAuth])
 
-
   // AUTO_IDLE_TIMEOUT_NSMS
   useEffect(() => {
-    if (!user) return;
+    if (!user) return
 
     const timeout =
-      user.role === "SUPER_ADMIN"
+      user.role === 'SUPER_ADMIN'
         ? 5 * 60 * 1000
-        : 10 * 60 * 1000;
+        : 10 * 60 * 1000
 
-    let timer:any;
+    let timer: ReturnType<typeof setTimeout>
 
     const resetTimer = () => {
-      clearTimeout(timer);
+      clearTimeout(timer)
+
       timer = setTimeout(() => {
-        useAuthStore.getState().logout();
-      }, timeout);
-    };
+        useAuthStore.getState().logout()
+      }, timeout)
+    }
 
-    [
-      "mousemove",
-      "mousedown",
-      "keydown",
-      "scroll",
-      "touchstart",
-      "click"
-    ].forEach(e=>window.addEventListener(e,resetTimer));
+    const events = [
+      'mousemove',
+      'mousedown',
+      'keydown',
+      'scroll',
+      'touchstart',
+      'click',
+    ]
 
-    resetTimer();
+    events.forEach((event) =>
+      window.addEventListener(event, resetTimer)
+    )
 
-    return ()=>{
-      clearTimeout(timer);
-      [
-        "mousemove",
-        "mousedown",
-        "keydown",
-        "scroll",
-        "touchstart",
-        "click"
-      ].forEach(e=>window.removeEventListener(e,resetTimer));
-    };
+    resetTimer()
 
-  },[user])
+    return () => {
+      clearTimeout(timer)
 
+      events.forEach((event) =>
+        window.removeEventListener(event, resetTimer)
+      )
+    }
+  }, [user])
 
   return (
     <Routes>
-      {/* Public - Auth */}
+      {/* Public - Authentication */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
       </Route>
 
-      {/* Protected */}
-      <Route element={
-        <ProtectedRoute>
-          <MainLayout />
-        </ProtectedRoute>
-      }>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      {/* Protected Routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route
+          path="/"
+          element={<Navigate to="/dashboard" replace />}
+        />
+
         <Route
           path="/dashboard"
           element={
@@ -94,22 +99,46 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route path="/offices" element={<OfficeMasterPage />} />
         <Route path="/offices/:id" element={<OfficeMasterPage />} />
+
         <Route path="/targets" element={<TargetsPage />} />
         <Route path="/targets/:tab" element={<TargetsPage />} />
+
         <Route path="/analytics" element={<AnalyticsPage />} />
+
         <Route path="/reports" element={<ReportsPageV2 />} />
         <Route path="/reports-v2" element={<ReportsPageV2 />} />
-        <Route path="/daily-monitoring" element={<DailyMonitoringPage />} />
+
+        <Route
+          path="/daily-monitoring"
+          element={<DailyMonitoringPage />}
+        />
+
+        {/* Office Draft Generator */}
+        <Route
+          path="/office-drafts"
+          element={<OfficeDraftPage />}
+        />
+
         <Route path="/ai-chat" element={<AIChatPage />} />
-        <Route path="/notifications" element={<NotificationsPage />} />
+
+        <Route
+          path="/notifications"
+          element={<NotificationsPage />}
+        />
+
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
       {/* 404 */}
       <Route path="/404" element={<NotFoundPage />} />
-      <Route path="*" element={<Navigate to="/404" replace />} />
+
+      <Route
+        path="*"
+        element={<Navigate to="/404" replace />}
+      />
     </Routes>
   )
 }
