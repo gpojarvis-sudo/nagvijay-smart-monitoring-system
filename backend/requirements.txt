@@ -6,7 +6,7 @@ fastapi==0.110.3
 uvicorn[standard]==0.29.0
 pydantic==2.7.4
 pydantic-settings==2.3.4
-python-multipart==0.0.9
+python-multipart==0.0.31
 python-dotenv==1.0.1
 
 # Database & ORM
